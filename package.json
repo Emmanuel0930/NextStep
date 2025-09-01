@@ -1,0 +1,29 @@
+{
+  "name": "magneto-engage",
+  "version": "1.0.0",
+  "description": "Este proyecto es un prototipo de aplicación web para incentivar la búsqueda de empleo en la plataforma **Magneto**.  \r El sistema está dividido en **Frontend (React)** y **Backend (Node.js + Express)**.",
+  "main": "index.js",
+  "scripts": {
+    "install-all": "npm run install-backend && npm run install-frontend",
+    "install-frontend": "cd frontend && npm install",
+    "install-backend": "cd backend && npm install",
+    "frontend": "cd frontend && npm start",
+    "backend": "cd backend && node server.js",
+    "dev": "concurrently -n backend,frontend -c blue,green \"npm run backend\" \"npm run frontend\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Emmanuel0930/Magneto-engage.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Emmanuel0930/Magneto-engage/issues"
+  },
+  "homepage": "https://github.com/Emmanuel0930/Magneto-engage#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

@@ -6,7 +6,7 @@ El sistema está dividido en **Frontend (React)** y **Backend (Node.js + Express
 ---
 
 ## 🚀 Requisitos
-- [Node.js](https://nodejs.org/) instalado en tu máquina
+- [Node.js](https://nodejs.org/) instalado en tu máquina  
 - npm (viene incluido con Node.js)
 
 ---
@@ -16,6 +16,7 @@ El sistema está dividido en **Frontend (React)** y **Backend (Node.js + Express
 NextStep/
 │── frontend/   # Interfaz de usuario (React + Tailwind)
 │── backend/    # Servidor API (Node.js + Express)
+│── package.json   # Scripts principales en la raíz
 ```
 
 ---
@@ -28,24 +29,24 @@ git clone https://github.com/Emmanuel0930/Magneto-engage.git
 cd Magneto-engage
 ```
 
-### 2. Levantar el Frontend (React)
+### 2. Instalar dependencias
+Para instalar **frontend y backend** juntos:
 ```bash
-cd frontend
-npm install
-npm start
+npm run install-all
 ```
-👉 Se abrirá en: [http://localhost:3000](http://localhost:3000)
 
-### 3. Levantar el Backend (Node.js + Express)
-En otra terminal:
+(O puedes hacerlo por separado: `npm run install-frontend` o `npm run install-backend`).
+
+### 3. Levantar el proyecto
+Ejecutar **frontend y backend al mismo tiempo**:
 ```bash
-cd backend
-npm install
-node server.js
+npm run dev
 ```
-👉 Se ejecuta en: [http://localhost:5000](http://localhost:5000)
+👉 Frontend en: [http://localhost:3000](http://localhost:3000)  
+👉 Backend en: [http://localhost:5000](http://localhost:5000)  
 
 ---
 
 ## 📝 Notas
-- **No se suben las carpetas `node_modules`** al repo (usar `npm install` después de clonar).  
+- **No se suben las carpetas `node_modules`** al repo (usar `npm run install-all` después de clonar).  
+- Los scripts definidos en la raíz (`package.json`) facilitan el manejo de todo el proyecto.  
