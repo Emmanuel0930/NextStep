@@ -4,7 +4,7 @@
   "description": "Este proyecto es un prototipo de aplicación web para incentivar la búsqueda de empleo en la plataforma **Magneto**.  \r El sistema está dividido en **Frontend (React)** y **Backend (Node.js + Express)**.",
   "main": "index.js",
   "scripts": {
-    "install-all": "npm run install-backend && npm run install-frontend",
+    "install-all": "npm install && npm run install-backend && npm run install-frontend",
     "install-frontend": "cd frontend && npm install",
     "install-backend": "cd backend && npm install",
     "frontend": "cd frontend && npm start",
