@@ -25,8 +25,8 @@ NextStep/
 
 ### 1. Clonar el repositorio
 ```bash
-git clone https://github.com/Emmanuel0930/Magneto-engage.git
-cd Magneto-engage
+git clone https://github.com/Emmanuel0930/NextStep.git
+cd NextStep
 ```
 
 ### 2. Instalar dependencias
