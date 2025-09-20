@@ -10,6 +10,7 @@ let demoUser = {
     email: "usuario@gmail.com",
     password: "user123",
 };
+
 const jobs = [
     {
         title: "Cajero",
@@ -83,6 +84,61 @@ const jobs = [
     }
 ];
 
+// Simulación de postulaciones realizadas por el usuario
+let userApplications = [
+    { jobId: 1, date: "2025-09-18" },
+    { jobId: 2, date: "2025-09-19" },
+    { jobId: 3, date: "2025-09-20" }
+];
+
+// Simulación de racha diaria de actividad
+let userStreak = {
+    currentStreak: 3, // días consecutivos
+    lastLogin: "2025-09-20T08:00:00Z"
+};
+
+// Simulación de notificaciones push
+let pushNotifications = [
+    {
+        id: 1,
+        message: "¡Sigue así! Llevas 3 días de racha.",
+        time: "08:00"
+    }
+];
+
+// Simulación de estadísticas adicionales
+let userStats = {
+    totalApplications: userApplications.length,
+    recommendedCount: jobs.slice(0, 3).length,
+    imagesOptimized: true
+};
+
+// Endpoint para racha diaria
+app.get('/api/streak', (req, res) => {
+    res.json(userStreak);
+});
+
+// Endpoint para notificaciones push
+app.get('/api/notifications', (req, res) => {
+    res.json(pushNotifications);
+});
+
+// Endpoint para estadísticas adicionales
+app.get('/api/stats', (req, res) => {
+    res.json(userStats);
+});
+// Endpoint para dashboard
+app.get('/api/dashboard', (req, res) => {
+    // Simula cantidad de postulaciones
+    const applicationsCount = userApplications.length;
+    // Simula recomendaciones (primeras 3 ofertas)
+    const recommendedJobs = jobs.slice(0, 3);
+    res.json({
+        applicationsCount,
+        recommendedJobs
+    });
+});
+
 app.get('/api/jobs', (req, res) => {
     res.json(jobs);
 });
@@ -95,7 +151,5 @@ app.post("/api/login", (req, res) => {
         res.status(401).json({ success: false, message: "Credenciales inválidas" });
     }
 });
-
-
 
 app.listen(PORT, () => console.log(`Servidor corriendo en http://localhost:${PORT}`));

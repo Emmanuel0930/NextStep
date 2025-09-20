@@ -37,13 +37,33 @@ npm run install-all
 
 (O puedes hacerlo por separado: `npm run install-frontend` o `npm run install-backend`).
 
+
 ### 3. Levantar el proyecto
-Ejecutar **frontend y backend al mismo tiempo**:
+Para ver la aplicación funcionando (frontend y backend):
+
+Ejecuta este comando en la raíz del proyecto:
 ```bash
 npm run dev
 ```
-👉 Frontend en: [http://localhost:3000](http://localhost:3000)  
-👉 Backend en: [http://localhost:5000](http://localhost:5000)  
+Esto iniciará:
+- El frontend en: [http://localhost:3000](http://localhost:3000)
+- El backend en: [http://localhost:5000](http://localhost:5000)
+
+**Asegúrate de tener las dependencias instaladas antes de correr el proyecto:**
+```bash
+npm run install-all
+```
+
+---
+
+## 🟣 Navegación y visualización
+
+Al abrir [http://localhost:3000](http://localhost:3000) en tu navegador, verás:
+- Menú de navegación superior (Inicio, Dashboard, Ingresar, Registrarse)
+- Página principal con empleos simulados
+- Dashboard con estadísticas, racha diaria y notificaciones push simuladas
+
+Si ves errores de carga, verifica que el backend esté corriendo correctamente en el puerto 5000.
 
 ---
 
