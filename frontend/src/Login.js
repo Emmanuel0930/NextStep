@@ -141,7 +141,7 @@ export default function Login() {
         <div className="flex justify-between mt-6">
           <button
             className="w-[48%] py-2 rounded bg-white text-blue-900 border border-gray-300 hover:bg-gray-100"
-            onClick={() => alert("Creación de cuenta aún no implementado")}
+            onClick={() => navigate("/signup")}
           >
             Crea una cuenta
           </button>

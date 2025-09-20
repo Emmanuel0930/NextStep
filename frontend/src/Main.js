@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-export default function Login() {
+export default function Main() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -35,7 +35,7 @@ export default function Login() {
   };
 
   const handleRegisterClick = () => {
-    alert("Registro aún no implementado");
+    navigate("/signup");
   };
 
   const handleJobClick = (job) => {
