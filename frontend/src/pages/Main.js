@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, X, MapPin, DollarSign, Clock } from 'lucide-react';
+import { ArrowLeft, X, MapPin, DollarSign, Clock } from "lucide-react";
 
 export default function Main() {
   const [jobs, setJobs] = useState([]);
@@ -9,14 +9,14 @@ export default function Main() {
   const [showKeyboard, setShowKeyboard] = useState(false);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/jobs')
-      .then(res => res.json())
-      .then(data => {
+    fetch("http://localhost:5000/api/jobs")
+      .then((res) => res.json())
+      .then((data) => {
         setJobs(data);
         setLoading(false);
       })
       .catch(() => {
-        setError('Error al cargar los empleos.');
+        setError("Error al cargar los empleos.");
         setLoading(false);
       });
   }, []);
@@ -33,9 +33,10 @@ export default function Main() {
     setShowKeyboard(false);
   };
 
-  const filteredJobs = jobs.filter(job => 
-    job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    job.company.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredJobs = jobs.filter(
+    (job) =>
+      job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.company.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (loading) {
@@ -123,7 +124,9 @@ export default function Main() {
         {filteredJobs.length === 0 && (
           <div className="text-center py-8">
             <div className="text-gray-400 text-lg mb-2">🔍</div>
-            <p className="text-gray-500">No se encontraron empleos para "{searchQuery}"</p>
+            <p className="text-gray-500">
+              No se encontraron empleos para "{searchQuery}"
+            </p>
           </div>
         )}
       </div>
@@ -134,11 +137,11 @@ export default function Main() {
           <div className="max-w-sm mx-auto">
             {/* First Row */}
             <div className="grid grid-cols-10 gap-1 mb-2">
-              {['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'].map(key => (
+              {["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"].map((key) => (
                 <button
                   key={key}
                   className="bg-white rounded p-2 text-center text-gray-800 font-medium shadow-sm hover:bg-gray-100"
-                  onClick={() => setSearchQuery(prev => prev + key)}
+                  onClick={() => setSearchQuery((prev) => prev + key)}
                 >
                   {key}
                 </button>
@@ -146,11 +149,11 @@ export default function Main() {
             </div>
             {/* Second Row */}
             <div className="grid grid-cols-9 gap-1 mb-2 pl-4">
-              {['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'].map(key => (
+              {["a", "s", "d", "f", "g", "h", "j", "k", "l"].map((key) => (
                 <button
                   key={key}
                   className="bg-white rounded p-2 text-center text-gray-800 font-medium shadow-sm hover:bg-gray-100"
-                  onClick={() => setSearchQuery(prev => prev + key)}
+                  onClick={() => setSearchQuery((prev) => prev + key)}
                 >
                   {key}
                 </button>
@@ -161,18 +164,18 @@ export default function Main() {
               <button className="bg-gray-300 rounded p-2 text-center text-gray-600 font-medium">
                 ⇧
               </button>
-              {['z', 'x', 'c', 'v', 'b', 'n', 'm'].map(key => (
+              {["z", "x", "c", "v", "b", "n", "m"].map((key) => (
                 <button
                   key={key}
                   className="bg-white rounded p-2 text-center text-gray-800 font-medium shadow-sm hover:bg-gray-100"
-                  onClick={() => setSearchQuery(prev => prev + key)}
+                  onClick={() => setSearchQuery((prev) => prev + key)}
                 >
                   {key}
                 </button>
               ))}
-              <button 
+              <button
                 className="bg-gray-300 rounded p-2 text-center text-gray-600 font-medium"
-                onClick={() => setSearchQuery(prev => prev.slice(0, -1))}
+                onClick={() => setSearchQuery((prev) => prev.slice(0, -1))}
               >
                 ⌫
               </button>
