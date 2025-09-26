@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { login } from "../services/api";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -9,6 +9,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSocialLogin = (platform) => {
     alert(`Login con ${platform} aún no implementado.`);
@@ -28,23 +29,43 @@ export default function Login() {
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
+    
+    validateEmail(email);
+    validatePassword(password);
+    
+    if (emailError || passwordError || !email || !password) {
+      return;
+    }
+
+    setIsLoading(true);
+
     try {
-      await axios.post("http://localhost:5000/api/login", {
-        email,
-        password,
-      });
-      alert("Login exitoso");
-      navigate("/");
-    } catch (error) {
-      if (error.response && error.response.status === 401) {
-        alert(
-          "Credenciales inválidas. Por favor, verifica tu email y contraseña."
-        );
+      const response = await login(email, password);
+      
+      if (response.success) {
+        alert("Login exitoso");
+        if (response.profile) {
+          localStorage.setItem('userProfile', JSON.stringify(response.profile));
+        }
+        navigate("/dashboard");
       } else {
-        alert("Error de login. Por favor, intenta nuevamente más tarde.");
+        alert("Credenciales inválidas. Por favor, verifica tu email y contraseña.");
+        setEmail("");
+        setPassword("");
       }
+    } catch (error) {
+      console.error('Error en login:', error);
+      
+      if (error.response && error.response.status === 401) {
+        alert("Credenciales inválidas. Por favor, verifica tu email y contraseña.");
+      } else {
+        alert("Error de conexión. Por favor, verifica que el servidor esté funcionando e intenta nuevamente.");
+      }
+      
       setEmail("");
       setPassword("");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -126,14 +147,14 @@ export default function Login() {
             <button
               type="submit"
               className={`w-full py-2 rounded-full mt-2 mb-2 text-white ${
-                emailError || passwordError || !email || !password
+                emailError || passwordError || !email || !password || isLoading
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                   : "bg-green-500 hover:bg-green-600"
               }`}
-              disabled={emailError || passwordError || !email || !password}
+              disabled={emailError || passwordError || !email || !password || isLoading}
               onClick={handleEmailLogin}
             >
-              Continuar
+              {isLoading ? "Iniciando sesión..." : "Continuar"}
             </button>
           </form>
         </div>
