@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { X, MapPin, DollarSign, Clock, Search } from "lucide-react";
-import { getJobs, searchJobs } from "../services/api";
-import { searchInFields, testNormalization } from "../utils/textUtils";
+import { getJobs } from "../services/api";
+import { searchInFields } from "../utils/textUtils";
 
-export default function Main() {
+export default function Jobs() {
   const [jobs, setJobs] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,9 +15,6 @@ export default function Main() {
     const fetchJobs = async () => {
       try {
         setLoading(true);
-        
-        // Ejecutar pruebas de normalización
-        testNormalization();
         
         const jobsData = await getJobs();
         setJobs(jobsData);
