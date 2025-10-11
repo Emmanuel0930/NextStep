@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { X, MapPin, DollarSign, Clock, Search } from "lucide-react";
+import { X, MapPin, DollarSign, Clock, User, CheckCircle, FileText } from "lucide-react";
 import { getJobs } from "../services/api";
-import { searchInFields } from "../utils/textUtils";
+import SearchComponent from "../components/Search";
 
 export default function Jobs() {
   const [jobs, setJobs] = useState([]);
@@ -10,16 +10,28 @@ export default function Jobs() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [activeFilters, setActiveFilters] = useState({}); // Nuevo estado para filtros
 
   useEffect(() => {
     const fetchJobs = async () => {
       try {
         setLoading(true);
+        setError("");
         
         const jobsData = await getJobs();
+        
+        console.log('Jobs.js - Datos recibidos:', jobsData);
+        console.log('Total empleos:', jobsData.length);
+        
+        if (jobsData.length > 0) {
+          console.log('Primer empleo completo:', jobsData[0]);
+        }
+        
         setJobs(jobsData);
         setFilteredJobs(jobsData);
-        setError("");
+        
       } catch (error) {
         console.error('Error al cargar empleos:', error);
         setError("Error al cargar los empleos. Verifica tu conexión e intenta nuevamente.");
@@ -31,33 +43,118 @@ export default function Jobs() {
     fetchJobs();
   }, []);
 
+  // Manejar búsqueda y filtros combinados
   useEffect(() => {
     const performSearch = async () => {
-      if (!searchQuery.trim()) {
-        setFilteredJobs(jobs);
-        return;
-      }
-
       setSearchLoading(true);
       
-      const localFiltered = jobs.filter((job) => {
-        return searchInFields(searchQuery, [
-          job.title,
-          job.company,
-          job.city,
-        ]);
-      });
+      let results = jobs;
+
+      // Filtrar por búsqueda de texto
+      if (searchQuery.trim()) {
+        const queryLower = searchQuery.toLowerCase().trim();
+        results = results.filter((job) => {
+          const searchableFields = [
+            job.nombre || '',
+            job.ciudad || '',
+            job.descripcion || '',
+            job.empresa || '',
+            ...(Array.isArray(job.palabrasClave) ? job.palabrasClave : []),
+            ...(Array.isArray(job.habilidades) ? job.habilidades : [])
+          ];
+          
+          return searchableFields.some(field => 
+            field && field.toString().toLowerCase().includes(queryLower)
+          );
+        });
+      }
+
+      // Filtro por salario mínimo
+      if (activeFilters.salarioMin) {
+        const salarioMin = parseInt(activeFilters.salarioMin);
+        results = results.filter(job => {
+          // Si el trabajo no tiene salario, no lo filtramos
+          if (!job.sueldo || job.sueldo === 0) return true;
+          return job.sueldo >= salarioMin;
+        });
+      }
+
+      // Filtro por ciudad
+      if (activeFilters.ciudad) {
+        results = results.filter(job => 
+          job.ciudad && job.ciudad.toLowerCase().includes(activeFilters.ciudad.toLowerCase())
+        );
+      }
+
+      // Filtro por habilidades
+      if (activeFilters.habilidades) {
+        results = results.filter(job =>
+          job.habilidades && 
+          Array.isArray(job.habilidades) && 
+          job.habilidades.some(habilidad => 
+            habilidad.toLowerCase().includes(activeFilters.habilidades.toLowerCase())
+          )
+        );
+      }
+
+      console.log(`Búsqueda + Filtros: ${results.length} resultados`);
+      console.log('Filtros activos:', activeFilters);
       
-      setFilteredJobs(localFiltered);
+      setFilteredJobs(results);
       setSearchLoading(false);
     };
 
-    const timeoutId = setTimeout(performSearch, 500);
+    const timeoutId = setTimeout(performSearch, 300);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, jobs]);
+  }, [searchQuery, activeFilters, jobs]);
+
+  // Función para recibir los filtros del componente Search
+  const handleFiltersChange = (filters) => {
+    setActiveFilters(filters);
+  };
 
   const handleJobClick = (job) => {
-    alert(`Ver detalles del trabajo: ${job.title} en ${job.company}`);
+    console.log('Job seleccionado completo:', job);
+    setSelectedJob(job);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedJob(null);
+  };
+
+  const handleAplicarClick = async (jobId) => {
+    try {
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        alert('Debes iniciar sesión para aplicar a este empleo');
+        return;
+      }
+
+      const response = await fetch('http://localhost:5000/api/aplicar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cuentaId: userId,
+          empleoId: jobId
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        alert(data.message);
+        handleCloseModal();
+      } else {
+        alert(data.message || 'Error al aplicar al empleo');
+      }
+    } catch (error) {
+      console.error('Error aplicando al empleo:', error);
+      alert('Error al aplicar al empleo');
+    }
   };
 
   const handleRetry = async () => {
@@ -73,6 +170,14 @@ export default function Jobs() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatSalary = (salary) => {
+    if (!salary || salary === 0) return 'Salario a convenir';
+    if (typeof salary === 'number') {
+      return `$${salary.toLocaleString('es-CO')}`;
+    }
+    return salary;
   };
 
   if (loading) {
@@ -115,50 +220,172 @@ export default function Jobs() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-gradient-to-r from-purple-600 to-purple-700 pb-6">
-        <div className="px-4 pt-12 pb-4">
-          <div className="max-w-4xl mx-auto text-center mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">NextStep</h1>
-            <p className="text-purple-100 text-sm md:text-base">Encuentra tu próxima oportunidad</p>
-          </div>
+      {/* Modal de Detalles del Empleo */}
+      {showModal && selectedJob && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-6">
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                    {selectedJob.nombre}
+                  </h2>
+                  {selectedJob.empresa && (
+                    <div className="flex items-center text-purple-600 font-medium mb-2">
+                      <span>🏢 {selectedJob.empresa}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center text-gray-600">
+                    <MapPin className="w-5 h-5 mr-2" />
+                    <span>{selectedJob.ciudad}</span>
+                  </div>
+                </div>
+                <button
+                  onClick={handleCloseModal}
+                  className="text-gray-400 hover:text-gray-600 transition-colors ml-4"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
 
-          <div className="max-w-2xl mx-auto relative">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white rounded-2xl py-4 pl-12 pr-12 text-gray-800 placeholder-gray-500 shadow-lg focus:outline-none focus:ring-4 focus:ring-purple-300 focus:ring-opacity-50 transition-all text-sm md:text-base"
-                placeholder={searchLoading ? "Buscando..." : "Cargo, empresa o ciudad..."}
-                disabled={loading}
-              />
-              
-              {searchLoading && (
-                <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                  <div className="w-5 h-5 border-2 border-purple-300 border-t-purple-600 rounded-full animate-spin"></div>
+              {/* Información principal */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="bg-purple-50 rounded-lg p-4">
+                  <div className="flex items-center text-purple-700 mb-2">
+                    <DollarSign className="w-5 h-5 mr-2" />
+                    <span className="font-semibold">Salario</span>
+                  </div>
+                  <p className="text-xl font-bold text-purple-600">
+                    {formatSalary(selectedJob.sueldo)}
+                  </p>
+                </div>
+
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <div className="flex items-center text-blue-700 mb-2">
+                    <User className="w-5 h-5 mr-2" />
+                    <span className="font-semibold">Experiencia</span>
+                  </div>
+                  <p className="text-xl font-bold text-blue-600">
+                    {selectedJob.añosExperiencia || 0} {(selectedJob.añosExperiencia || 0) === 1 ? 'año' : 'años'}
+                  </p>
+                </div>
+
+                <div className="bg-green-50 rounded-lg p-4">
+                  <div className="flex items-center text-green-700 mb-2">
+                    <MapPin className="w-5 h-5 mr-2" />
+                    <span className="font-semibold">Ubicación</span>
+                  </div>
+                  <p className="text-xl font-bold text-green-600">
+                    {selectedJob.ciudad}
+                  </p>
+                </div>
+
+                <div className="bg-orange-50 rounded-lg p-4">
+                  <div className="flex items-center text-orange-700 mb-2">
+                    <Clock className="w-5 h-5 mr-2" />
+                    <span className="font-semibold">Publicación</span>
+                  </div>
+                  <p className="text-lg font-bold text-orange-600">
+                    {selectedJob.fechaPublicacion 
+                      ? new Date(selectedJob.fechaPublicacion).toLocaleDateString('es-CO', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })
+                      : 'Reciente'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Descripción */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                  <FileText className="w-5 h-5 mr-2" />
+                  Descripción del Puesto
+                </h3>
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                    {selectedJob.descripcion || 'No hay descripción disponible.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Habilidades */}
+              {selectedJob.habilidades && Array.isArray(selectedJob.habilidades) && selectedJob.habilidades.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    Habilidades Requeridas
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedJob.habilidades.map((habilidad, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center gap-1 px-3 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-medium border border-green-200"
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                        {habilidad}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
-              
-              {searchQuery && !searchLoading && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors"
-                >
-                  <X className="w-4 h-4 text-gray-600" />
-                </button>
+
+              {/* Palabras clave */}
+              {selectedJob.palabrasClave && Array.isArray(selectedJob.palabrasClave) && selectedJob.palabrasClave.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    Palabras Clave
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedJob.palabrasClave.map((palabra, index) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm border border-purple-200"
+                      >
+                        #{palabra}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               )}
+
+              {/* Botones de acción */}
+              <div className="flex gap-3 pt-4 border-t border-gray-200">
+                <button
+                  onClick={() => handleAplicarClick(selectedJob.id)}
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 text-white py-3 px-6 rounded-xl font-semibold hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-lg hover:shadow-xl"
+                >
+                  Aplicar Ahora
+                </button>
+                <button
+                  onClick={handleCloseModal}
+                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+                >
+                  Cerrar
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Barra de busqueda */}
+      <SearchComponent 
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        searchLoading={searchLoading}
+        loading={loading}
+        jobs={jobs}
+        filteredJobs={filteredJobs}
+        onFiltersChange={handleFiltersChange} 
+      />
 
       <div className="px-4 py-6 max-w-6xl mx-auto">
         {!loading && !searchLoading && filteredJobs.length > 0 && (
           <div className="mb-6 text-center">
             <p className="text-gray-600">
-              {searchQuery ? (
-                <>Encontrados <span className="font-semibold text-purple-600">{filteredJobs.length}</span> empleos para "{searchQuery}"</>
+              {searchQuery || Object.values(activeFilters).some(f => f !== '') ? (
+                <>Encontrados <span className="font-semibold text-purple-600">{filteredJobs.length}</span> empleos</>
               ) : (
                 <><span className="font-semibold text-purple-600">{filteredJobs.length}</span> empleos disponibles</>
               )}
@@ -166,42 +393,63 @@ export default function Jobs() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {filteredJobs.map((job) => (
             <div
               key={job.id}
-              className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow flex flex-col justify-between"
               onClick={() => handleJobClick(job)}
+              className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 cursor-pointer hover:shadow-lg hover:border-purple-200 transition-all flex flex-col justify-between"
             >
               <div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">
-                  {job.title}
+                <h3 className="text-xl font-bold text-gray-800 mb-3 line-clamp-2">
+                  {job.nombre}
                 </h3>
-                <div className="flex items-center text-gray-600 text-base mb-2">
-                  <span className="font-medium">{job.company}</span>
-                  <span className="mx-2">•</span>
-                  <span>{job.contract}</span>
-                </div>
+                
                 <div className="space-y-2">
-                  <div className="flex items-center text-green-600 font-semibold text-base">
-                    <DollarSign className="w-5 h-5 mr-1" />
-                    {job.salary}
+                  <div className="flex items-center text-green-600 font-semibold">
+                    <DollarSign className="w-5 h-5 mr-1 flex-shrink-0" />
+                    <span className="truncate">{formatSalary(job.sueldo)}</span>
                   </div>
-                  <div className="flex items-center text-gray-500 text-base">
-                    <MapPin className="w-5 h-5 mr-1" />
-                    <span className="mr-3">{job.city}</span>
-                    <Clock className="w-5 h-5 mr-1" />
-                    <span>{job.type}</span>
+                  
+                  <div className="flex items-center text-gray-600">
+                    <MapPin className="w-5 h-5 mr-1 flex-shrink-0" />
+                    <span className="truncate">{job.ciudad}</span>
                   </div>
+                  
+                  {job.añosExperiencia > 0 && (
+                    <div className="flex items-center text-blue-600 text-sm">
+                      <User className="w-4 h-4 mr-1 flex-shrink-0" />
+                      <span>{job.añosExperiencia} {job.añosExperiencia === 1 ? 'año' : 'años'}</span>
+                    </div>
+                  )}
                 </div>
+
+                {/* Preview de habilidades */}
+                {job.habilidades && job.habilidades.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-1">
+                    {job.habilidades.slice(0, 3).map((hab, idx) => (
+                      <span key={idx} className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded">
+                        {hab}
+                      </span>
+                    ))}
+                    {job.habilidades.length > 3 && (
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                        +{job.habilidades.length - 3}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
+              
               <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
                 <span className="text-xs text-gray-400">
-                  Publicado hace 2 días
+                  {job.fechaPublicacion 
+                    ? new Date(job.fechaPublicacion).toLocaleDateString('es-CO')
+                    : 'Reciente'}
                 </span>
-                <button className="text-purple-600 text-base font-medium hover:text-purple-700">
-                  Ver detalles
-                </button>
+                <span className="text-purple-600 text-sm font-medium group-hover:text-purple-700">
+                  Ver detalles →
+                </span>
               </div>
             </div>
           ))}
@@ -210,16 +458,19 @@ export default function Jobs() {
         {filteredJobs.length === 0 && !loading && !searchLoading && (
           <div className="text-center py-12">
             <div className="text-gray-400 text-4xl mb-4">🔍</div>
-            {searchQuery ? (
+            {searchQuery || Object.values(activeFilters).some(f => f !== '') ? (
               <>
                 <p className="text-gray-600 text-lg mb-2">
-                  No se encontraron empleos para "{searchQuery}"
+                  No se encontraron empleos con los filtros aplicados
                 </p>
                 <p className="text-gray-500 text-sm mb-4">
-                  Intenta con otros términos de búsqueda
+                  Intenta ajustar tu búsqueda o filtros
                 </p>
                 <button
-                  onClick={() => setSearchQuery("")}
+                  onClick={() => {
+                    setSearchQuery("");
+                    setActiveFilters({});
+                  }}
                   className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors"
                 >
                   Ver todos los empleos

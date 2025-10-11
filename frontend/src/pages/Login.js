@@ -43,10 +43,15 @@ export default function Login() {
       const response = await login(email, password);
       
       if (response.success) {
-        alert("Login exitoso");
+        alert("¡Bienvenido a NextStep! 🎉");
+        
+        // Guardar datos en localStorage
         if (response.profile) {
           localStorage.setItem('userProfile', JSON.stringify(response.profile));
+          localStorage.setItem('userId', response.profile.id);
         }
+        
+        // Redirigir al dashboard
         navigate("/dashboard");
       } else {
         alert("Credenciales inválidas. Por favor, verifica tu email y contraseña.");
@@ -168,10 +173,20 @@ export default function Login() {
           </button>
           <button
             className="w-[48%] py-2 rounded bg-white text-blue-900 border border-gray-300 hover:bg-gray-100"
-            onClick={() => navigate("/")}
+            onClick={() => {
+              // Si el usuario quiere ver empleos sin login, mostrar mensaje
+              alert("Debes iniciar sesión para ver los empleos disponibles");
+            }}
           >
-            Ir a ver empleos
+            Ver empleos
           </button>
+        </div>
+
+        {/* Información adicional para usuarios */}
+        <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <p className="text-sm text-blue-700">
+            💡 <strong>¿Primera vez aquí?</strong> Crea una cuenta para acceder a todas las funciones de NextStep.
+          </p>
         </div>
       </div>
     </div>

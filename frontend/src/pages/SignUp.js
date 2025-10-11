@@ -1,24 +1,25 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export default function SignUp() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
+    nombreUsuario: "",
+    correo: "",
+    contraseña: "",
+    confirmarContraseña: "",
   });
 
   const [errors, setErrors] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
+    nombreUsuario: "",
+    correo: "",
+    contraseña: "",
+    confirmarContraseña: "",
   });
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSocialSignUp = (platform) => {
     alert(`Registro con ${platform} aún no implementado.`);
@@ -28,32 +29,26 @@ export default function SignUp() {
     let error = "";
 
     switch (name) {
-      case "firstName":
-        if (!value.trim()) error = "El nombre es requerido.";
-        else if (value.trim().length < 2)
-          error = "El nombre debe tener al menos 2 caracteres.";
+      case "nombreUsuario":
+        if (!value.trim()) error = "El nombre de usuario es requerido.";
+        else if (value.trim().length < 3)
+          error = "El nombre de usuario debe tener al menos 3 caracteres.";
+        else if (!/^[a-zA-Z0-9_]+$/.test(value))
+          error = "Solo se permiten letras, números y guion bajo.";
         break;
-      case "lastName":
-        if (!value.trim()) error = "El apellido es requerido.";
-        else if (value.trim().length < 2)
-          error = "El apellido debe tener al menos 2 caracteres.";
-        break;
-      case "email":
+      case "correo":
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!value.trim()) error = "El email es requerido.";
         else if (!emailRegex.test(value)) error = "Email inválido.";
         break;
-      case "password":
+      case "contraseña":
         if (!value) error = "La contraseña es requerida.";
-        else if (value.length < 8)
-          error = "La contraseña debe tener al menos 8 caracteres.";
-        else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value))
-          error =
-            "Debe contener al menos una mayúscula, una minúscula y un número.";
+        else if (value.length < 6)
+          error = "La contraseña debe tener al menos 6 caracteres.";
         break;
-      case "confirmPassword":
+      case "confirmarContraseña":
         if (!value) error = "Confirma tu contraseña.";
-        else if (value !== formData.password)
+        else if (value !== formData.contraseña)
           error = "Las contraseñas no coinciden.";
         break;
       default:
@@ -68,14 +63,15 @@ export default function SignUp() {
     setFormData((prev) => ({ ...prev, [name]: value }));
     validateField(name, value);
 
-    if (name === "password" && formData.confirmPassword) {
-      validateField("confirmPassword", formData.confirmPassword);
+    if (name === "contraseña" && formData.confirmarContraseña) {
+      validateField("confirmarContraseña", formData.confirmarContraseña);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validar todos los campos
     Object.keys(formData).forEach((key) => {
       validateField(key, formData[key]);
     });
@@ -86,11 +82,29 @@ export default function SignUp() {
     );
 
     if (!hasErrors && !hasEmptyFields) {
+      setIsLoading(true);
+      
       try {
-        alert("Registro exitoso");
-        navigate("/login");
+        const response = await axios.post('http://localhost:5000/api/registro', {
+          nombreUsuario: formData.nombreUsuario,
+          correo: formData.correo,
+          contraseña: formData.contraseña
+        });
+
+        if (response.data.success) {
+          alert("¡Registro exitoso! Ahora puedes iniciar sesión.");
+          navigate("/login");
+        }
       } catch (error) {
-        alert("Error en el registro. Por favor, intenta nuevamente más tarde.");
+        console.error('Error en registro:', error);
+        
+        if (error.response && error.response.data) {
+          alert(error.response.data.message || "Error en el registro");
+        } else {
+          alert("Error en el registro. Por favor, intenta nuevamente más tarde.");
+        }
+      } finally {
+        setIsLoading(false);
       }
     }
   };
@@ -150,83 +164,64 @@ export default function SignUp() {
             O con tu información personal:
           </p>
           <form onSubmit={handleSubmit}>
-            <div className="flex gap-2 mb-2">
-              <div className="w-1/2">
-                <input
-                  type="text"
-                  name="firstName"
-                  placeholder="Nombre"
-                  value={formData.firstName}
-                  onChange={handleInputChange}
-                  className="w-full h-11 px-3 bg-white border border-gray-300 rounded text-base focus:outline-none focus:ring-2 focus:ring-blue-400"
-                />
-              </div>
-              <div className="w-1/2">
-                <input
-                  type="text"
-                  name="lastName"
-                  placeholder="Apellido"
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                  className="w-full h-11 px-3 bg-white border border-gray-300 rounded text-base focus:outline-none focus:ring-2 focus:ring-blue-400"
-                />
-              </div>
-            </div>
-            <div className="flex gap-2 mb-2">
-              <p className="text-sm text-red-700 px-2 py-1 text-left min-h-[1.5em] w-1/2">
-                {errors.firstName}
-              </p>
-              <p className="text-sm text-red-700 px-2 py-1 text-left min-h-[1.5em] w-1/2">
-                {errors.lastName}
-              </p>
-            </div>
+            <input
+              type="text"
+              name="nombreUsuario"
+              placeholder="Nombre de usuario"
+              value={formData.nombreUsuario}
+              onChange={handleInputChange}
+              className="w-full h-11 px-3 mb-2 bg-white border border-gray-300 rounded text-base focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+            <p className="text-sm text-red-700 px-2 py-1 mb-2 text-left min-h-[1.5em]">
+              {errors.nombreUsuario}
+            </p>
 
             <input
               type="email"
-              name="email"
+              name="correo"
               placeholder="Escribe tu email"
-              value={formData.email}
+              value={formData.correo}
               onChange={handleInputChange}
               className="w-full h-11 px-3 mb-2 bg-white border border-gray-300 rounded text-base focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
             <p className="text-sm text-red-700 px-2 py-1 mb-2 text-left min-h-[1.5em]">
-              {errors.email}
+              {errors.correo}
             </p>
 
             <input
               type="password"
-              name="password"
+              name="contraseña"
               placeholder="Crea una contraseña"
-              value={formData.password}
+              value={formData.contraseña}
               onChange={handleInputChange}
               className="w-full h-11 px-3 mb-2 bg-white border border-gray-300 rounded text-base focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
             <p className="text-sm text-red-700 px-2 py-1 mb-2 text-left min-h-[1.5em]">
-              {errors.password}
+              {errors.contraseña}
             </p>
 
             <input
               type="password"
-              name="confirmPassword"
+              name="confirmarContraseña"
               placeholder="Confirma tu contraseña"
-              value={formData.confirmPassword}
+              value={formData.confirmarContraseña}
               onChange={handleInputChange}
               className="w-full h-11 px-3 mb-2 bg-white border border-gray-300 rounded text-base focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
             <p className="text-sm text-red-700 px-2 py-1 mb-2 text-left min-h-[1.5em]">
-              {errors.confirmPassword}
+              {errors.confirmarContraseña}
             </p>
 
             <button
               type="submit"
               className={`w-full py-2 rounded-full mt-2 mb-2 text-white ${
-                !isFormValid()
+                !isFormValid() || isLoading
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                   : "bg-green-500 hover:bg-green-600"
               }`}
-              disabled={!isFormValid()}
+              disabled={!isFormValid() || isLoading}
             >
-              Crear cuenta
+              {isLoading ? "Creando cuenta..." : "Crear cuenta"}
             </button>
           </form>
         </div>

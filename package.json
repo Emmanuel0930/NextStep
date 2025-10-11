@@ -27,6 +27,7 @@
     "concurrently": "^9.2.1"
   },
   "dependencies": {
-    "lucide-react": "^0.544.0"
+    "lucide-react": "^0.544.0",
+    "mongoose": "^8.19.1"
   }
 }

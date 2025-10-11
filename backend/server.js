@@ -3,153 +3,74 @@ const cors = require('cors');
 const app = express();
 const PORT = 5000;
 
-app.use(cors());
+const connectDB = require('../datos/config/database');
+
+// Conectar a la base de datos
+connectDB();
+
+// Middlewares
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
-let demoUser = {
-    email: "usuario@gmail.com",
-    password: "user123",
-};
+// Importar rutas
+const authRoutes = require('./rutas/auth');
+const empleosRoutes = require('./rutas/empleos');
+const perfilRoutes = require('./rutas/perfil');
+const aplicacionesRoutes = require('./rutas/aplicaciones');
+const insigniasRoutes = require('./rutas/insignias'); 
 
-const jobs = [
-    {
-        title: "Cajero",
-        company: "Éxito",
-        contract: "Término indefinido",
-        salary: "$1.500.000 a $1.800.000",
-        city: "Medellín"
-    },
-    {
-        title: "Asesor Comercial",
-        company: "Bancolombia",
-        contract: "Término fijo",
-        salary: "$2.000.000 a $2.500.000",
-        city: "Bogotá"
-    },
-    {
-        title: "Diseñador Gráfico",
-        company: "Crehana",
-        contract: "Temporal",
-        salary: "$1.800.000 a $2.200.000",
-        city: "Cali"
-    },
-    {
-        title: "Auxiliar Administrativo",
-        company: "Postobón",
-        contract: "Término indefinido",
-        salary: "$1.600.000 a $1.900.000",
-        city: "Bucaramanga"
-    },
-    {
-        title: "Técnico en Soporte",
-        company: "Claro Colombia",
-        contract: "Temporal",
-        salary: "$1.800.000",
-        city: "Barranquilla"
-    },
-    {
-        title: "Recepcionista",
-        company: "Hotel Movich",
-        contract: "Término indefinido",
-        salary: "$1.400.000 a $1.700.000",
-        city: "Cartagena"
-    },
-    {
-        title: "Asistente de Marketing",
-        company: "Rappi",
-        contract: "Término fijo",
-        salary: "A convenir",
-        city: "Medellín"
-    },
-    {
-        title: "Auxiliar de Logística",
-        company: "Alpina",
-        contract: "Término indefinido",
-        salary: "$1.500.000 a $1.800.000",
-        city: "Bogotá"
-    },
-    {
-        title: "Consultor de Ventas",
-        company: "Davivienda",
-        contract: "Temporal",
-        salary: "$2.000.000 a $2.500.000",
-        city: "Cali"
-    },
-    {
-        title: "Asesor de Servicio al Cliente",
-        company: "Grupo Éxito",
-        contract: "Término indefinido",
-        salary: "$1.600.000 a $1.900.000",
-        city: "Medellín"
-    }
-];
+// Usar rutas
+app.use('/api', authRoutes);
+app.use('/api', empleosRoutes);
+app.use('/api', perfilRoutes);
+app.use('/api', aplicacionesRoutes);
+app.use('/api/insignias', insigniasRoutes);
 
-// Simulación de postulaciones realizadas por el usuario
-let userApplications = [
-    { jobId: 1, date: "2025-09-18" },
-    { jobId: 2, date: "2025-09-19" },
-    { jobId: 3, date: "2025-09-20" }
-];
-
-// Simulación de racha diaria de actividad
-let userStreak = {
-    currentStreak: 3, // días consecutivos
-    lastLogin: "2025-09-20T08:00:00Z"
-};
-
-// Simulación de notificaciones push
-let pushNotifications = [
-    {
-        id: 1,
-        message: "¡Sigue así! Llevas 3 días de racha.",
-        time: "08:00"
-    }
-];
-
-// Simulación de estadísticas adicionales
-let userStats = {
-    totalApplications: userApplications.length,
-    recommendedCount: jobs.slice(0, 3).length,
-    imagesOptimized: true
-};
-
-// Endpoint para racha diaria
-app.get('/api/streak', (req, res) => {
-    res.json(userStreak);
+// Ruta raíz
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Backend NextStep está funcionando ✅',
+    version: '1.0.0',
+    endpoints: [
+      'POST /api/login',
+      'POST /api/registro',
+      'GET /api/jobs',
+      'GET /api/dashboard',
+      'GET /api/perfil/:userId',
+      'PUT /api/perfil/nivel1',
+      'PUT /api/perfil/nivel2',
+      'PUT /api/perfil/nivel3',
+      'PUT /api/perfil/nivel4',
+      'GET /api/streak',
+      'GET /api/notifications',
+      'GET /api/stats',
+      'POST /api/aplicar',
+      'GET /api/insignias/insignia/:cuentaId',
+      'POST /api/insignias/verificar-perfil-completo'
+    ]
+  });
 });
 
-// Endpoint para notificaciones push
-app.get('/api/notifications', (req, res) => {
-    res.json(pushNotifications);
-});
+// Inicializar datos de prueba
+const initData = require('./utils/initData');
 
-// Endpoint para estadísticas adicionales
-app.get('/api/stats', (req, res) => {
-    res.json(userStats);
-});
-// Endpoint para dashboard
-app.get('/api/dashboard', (req, res) => {
-    // Simula cantidad de postulaciones
-    const applicationsCount = userApplications.length;
-    // Simula recomendaciones (primeras 3 ofertas)
-    const recommendedJobs = jobs.slice(0, 3);
-    res.json({
-        applicationsCount,
-        recommendedJobs
-    });
-});
+// Esperar un momento para que la conexión a la base de datos esté lista
+setTimeout(async () => {
+  try {
+    console.log('Iniciando carga de datos...');
+    await initData();
+    console.log('Carga de datos completada');
+  } catch (error) {
+    console.error('Error en la carga de datos:', error);
+  }
+}, 2000);
 
-app.get('/api/jobs', (req, res) => {
-    res.json(jobs);
+// Iniciar servidor
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
-
-app.post("/api/login", (req, res) => {
-    const { email, password } = req.body;
-    if (email === demoUser.email && password === demoUser.password) {
-        res.json({ success: true, profile: demoUser.profile });
-    } else {
-        res.status(401).json({ success: false, message: "Credenciales inválidas" });
-    }
-});
-
-app.listen(PORT, () => console.log(`Servidor corriendo en http://localhost:${PORT}`));
