@@ -1,7 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { X, MapPin, DollarSign, Clock, User, CheckCircle, FileText } from "lucide-react";
 import { getJobs } from "../services/api";
 import SearchComponent from "../components/Search";
+import { useNotification } from "../components/NotificationProvider";
+
 
 export default function Jobs() {
   const [jobs, setJobs] = useState([]);
@@ -12,7 +15,8 @@ export default function Jobs() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedJob, setSelectedJob] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [activeFilters, setActiveFilters] = useState({}); // Nuevo estado para filtros
+  const [activeFilters, setActiveFilters] = useState({});
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -144,7 +148,7 @@ export default function Jobs() {
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         alert(data.message);
         handleCloseModal();

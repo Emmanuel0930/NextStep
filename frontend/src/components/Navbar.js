@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
-import { User, Menu, Award, Briefcase } from 'lucide-react'; 
+import { User, Menu, Bell, Award, Briefcase } from 'lucide-react';
+import { useNotification } from "./NotificationProvider";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const { showNotification } = useNotification();
 
   const handleMenuClick = () => {
     setMenuOpen((prev) => !prev);
@@ -40,7 +42,7 @@ export default function Navbar() {
     localStorage.removeItem('userProfile');
     setMenuOpen(false);
     navigate("/login");
-    alert("Sesión cerrada correctamente");
+    showNotification("Sesión cerrada correctamente");
   };
 
   return (
@@ -111,13 +113,73 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Derecha: Información del usuario */}
+        {/* Derecha: Información del usuario y Notificaciones */}
         <div className="flex items-center gap-2">
+          {/* Ícono de notificación */}
+          <NotificationBell />
           <div className="w-8 h-8 bg-purple-200 rounded-full flex items-center justify-center">
             <User className="w-5 h-5 text-purple-600" />
           </div>
         </div>
       </div>
     </nav>
+  );
+}
+
+// Componente de ícono de notificación con badge y navegación
+export function NotificationBell() {
+  const { notifications, unreadCount, markAllAsRead, clearNotifications } = useNotification();
+  const [open, setOpen] = useState(false);
+
+  const handleClick = () => {
+    setOpen((prev) => !prev);
+    markAllAsRead();
+  };
+
+  // Filtrar para ocultar la notificación de bienvenida
+  const filteredNotifications = notifications.filter(
+    n => n.message !== "¡Bienvenid@ a NextStep! 🎉" &&
+       n.message !== "Sesión cerrada correctamente"
+  );
+
+  return (
+    <div className="relative">
+      <button
+        onClick={handleClick}
+        className="relative w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors"
+        aria-label="Notificaciones"
+      >
+        <Bell className="w-5 h-5 text-gray-600" />
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 font-bold">
+            {unreadCount}
+          </span>
+        )}
+      </button>
+      {open && (
+        <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-lg font-bold text-purple-700">Notificaciones</h3>
+            <button
+              onClick={clearNotifications}
+              className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
+            >
+              Eliminar todas
+            </button>
+          </div>
+          {filteredNotifications.length === 0 ? (
+            <div className="text-gray-500 text-sm">No tienes notificaciones.</div>
+          ) : (
+            <ul className="space-y-2 max-h-64 overflow-y-auto">
+              {filteredNotifications.slice().reverse().map((notif) => (
+                <li key={notif.id} className={`p-3 rounded ${notif.read ? 'bg-gray-50' : 'bg-purple-100'} text-gray-800 text-sm shadow-sm`}>
+                  {notif.message}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

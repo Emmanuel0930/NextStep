@@ -5,6 +5,7 @@ import {
   Clock, Plus, Trash2 
 } from 'lucide-react';
 
+import { useNotification } from "../components/NotificationProvider";
 export default function Perfil() {
   const [activeLevel, setActiveLevel] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -218,6 +219,7 @@ export default function Perfil() {
 };
 
 // Función para verificar insignia automáticamente
+const { showNotification } = useNotification();
 const verificarInsigniaPerfilCompleto = async () => {
   try {
     const response = await fetch('http://localhost:5000/api/insignias/verificar-perfil-completo', {
@@ -231,8 +233,7 @@ const verificarInsigniaPerfilCompleto = async () => {
     console.log('🏆 Verificación de insignia:', data);
     
     if (data.success && data.perfilCompleto && data.insigniaObtenida && !data.insigniaYaObtenida) {
-      alert(`🎉 ¡FELICITACIONES! 🎉\n\n${data.message}\n\n🌟 Insignia: "${data.insignia.nombre}"\n⭐ +${data.puntosGanados} puntos\n\n¡Visita la sección de Insignias para verla!`);
-      
+      showNotification(`🎉 ¡FELICITACIONES! ${data.message} 🌟 Insignia: "${data.insignia.nombre}" ⭐ +${data.puntosGanados} puntos ¡Visita la sección de Insignias para verla!`, 6000);
       // Recargar el perfil para actualizar los puntos
       await fetchUserProfile();
     }

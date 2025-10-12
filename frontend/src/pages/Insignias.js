@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNotification } from "../components/NotificationProvider";
 import { Award, Lock, Star, Calendar, CheckCircle, RefreshCw } from 'lucide-react';
 
 export default function Insignias() {
@@ -6,6 +7,7 @@ export default function Insignias() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [verificando, setVerificando] = useState(false);
+  const { showNotification } = useNotification();
 
   const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
 
@@ -68,9 +70,9 @@ export default function Insignias() {
         // Recargar los datos de la insignia
         await fetchInsignia();
         
-        // Mostrar alerta de felicitaciones
+        // Mostrar notificación de felicitaciones
         if (!data.insigniaYaObtenida) {
-          alert(`🎉 ¡Felicitaciones! 🎉\n\n${data.message}\n\n¡Has desbloqueado la insignia "${data.insignia.nombre}"!`);
+          showNotification(`🎉 ¡Felicitaciones! ${data.message} ¡Has desbloqueado la insignia "${data.insignia.nombre}"!`, 6000);
         }
       }
     } catch (error) {

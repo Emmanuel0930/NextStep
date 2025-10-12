@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useNotification } from "../components/NotificationProvider";
 
 export default function SignUp() {
   const navigate = useNavigate();
+  const { showNotification } = useNotification();
 
   const [formData, setFormData] = useState({
     nombreUsuario: "",
@@ -92,7 +94,7 @@ export default function SignUp() {
         });
 
         if (response.data.success) {
-          alert("¡Registro exitoso! Ahora puedes iniciar sesión.");
+          showNotification("¡Registro exitoso! Ahora puedes iniciar sesión.");
           navigate("/login");
         }
       } catch (error) {

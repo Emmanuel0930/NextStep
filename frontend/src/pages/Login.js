@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useNotification } from "../components/NotificationProvider";
 import { useNavigate } from "react-router-dom";
 import { login } from "../services/api";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { showNotification } = useNotification();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,8 +45,8 @@ export default function Login() {
       const response = await login(email, password);
       
       if (response.success) {
-        alert("¡Bienvenido a NextStep! 🎉");
-        
+        showNotification("¡Bienvenid@ a NextStep! 🎉");
+        showNotification("Oferta de empleo recomendada: " + "Auxiliar Administrativo - Postobón");
         // Guardar datos en localStorage
         if (response.profile) {
           localStorage.setItem('userProfile', JSON.stringify(response.profile));
