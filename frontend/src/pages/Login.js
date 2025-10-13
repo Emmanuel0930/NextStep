@@ -43,16 +43,24 @@ export default function Login() {
 
     try {
       const response = await login(email, password);
-      
       if (response.success) {
         showNotification("¡Bienvenid@ a NextStep! 🎉");
-        showNotification("Oferta de empleo recomendada: " + "Auxiliar Administrativo - Postobón");
+        // Obtener empleos y mostrar uno aleatorio
+        try {
+          const jobs = await import("../services/api").then(mod => mod.getJobs());
+          if (Array.isArray(jobs) && jobs.length > 0) {
+            const randomJob = jobs[Math.floor(Math.random() * jobs.length)];
+            showNotification("Oferta de empleo recomendada: " + (randomJob.nombre || randomJob.titulo || "Empleo disponible"));
+          }
+        } catch (err) {
+          // Si falla, mostrar mensaje genérico
+          showNotification("¡Mira las ofertas de empleo disponibles!");
+        }
         // Guardar datos en localStorage
         if (response.profile) {
           localStorage.setItem('userProfile', JSON.stringify(response.profile));
           localStorage.setItem('userId', response.profile.id);
         }
-        
         // Redirigir al dashboard
         navigate("/dashboard");
       } else {
@@ -62,13 +70,11 @@ export default function Login() {
       }
     } catch (error) {
       console.error('Error en login:', error);
-      
       if (error.response && error.response.status === 401) {
         alert("Credenciales inválidas. Por favor, verifica tu email y contraseña.");
       } else {
         alert("Error de conexión. Por favor, verifica que el servidor esté funcionando e intenta nuevamente.");
       }
-      
       setEmail("");
       setPassword("");
     } finally {

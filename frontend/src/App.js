@@ -15,9 +15,20 @@ function App() {
 
   // Mostrar notificaciones de bienvenida si la sesión está iniciada
   useEffect(() => {
-    if (localStorage.getItem('userId') && !sessionStorage.getItem('welcomeShown')) {
+    async function mostrarBienvenida() {
       showNotification("¡Bienvenid@ a NextStep! 🎉");
-      showNotification("Oferta de empleo recomendada: Auxiliar Administrativo - Postobón");
+      try {
+        const jobs = await import("./services/api").then(mod => mod.getJobs());
+        if (Array.isArray(jobs) && jobs.length > 0) {
+          const randomJob = jobs[Math.floor(Math.random() * jobs.length)];
+          showNotification("Oferta de empleo recomendada: " + (randomJob.nombre || randomJob.titulo || "Empleo disponible"));
+        }
+      } catch (err) {
+        showNotification("¡Mira las ofertas de empleo disponibles!");
+      }
+    }
+    if (localStorage.getItem('userId') && !sessionStorage.getItem('welcomeShown')) {
+      mostrarBienvenida();
       sessionStorage.setItem('welcomeShown', 'true');
     }
   }, [showNotification]);
