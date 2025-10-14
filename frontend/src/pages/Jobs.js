@@ -46,6 +46,18 @@ export default function Jobs() {
 
     fetchJobs();
   }, []);
+  // Abrir automáticamente el modal si hay jobId en la URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const jobId = params.get('jobId');
+    if (jobId && jobs.length > 0) {
+      const job = jobs.find(j => String(j.id) === String(jobId));
+      if (job) {
+        setSelectedJob(job);
+        setShowModal(true);
+      }
+    }
+  }, [jobs]);
 
   // Manejar búsqueda y filtros combinados
   useEffect(() => {

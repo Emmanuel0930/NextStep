@@ -21,7 +21,11 @@ function App() {
         const jobs = await import("./services/api").then(mod => mod.getJobs());
         if (Array.isArray(jobs) && jobs.length > 0) {
           const randomJob = jobs[Math.floor(Math.random() * jobs.length)];
-          showNotification("Oferta de empleo recomendada: " + (randomJob.nombre || randomJob.titulo || "Empleo disponible"));
+          showNotification(
+            "Oferta de empleo recomendada: " + (randomJob.nombre || randomJob.titulo || "Empleo disponible"),
+            3000,
+            { jobId: randomJob.id }
+          );
         }
       } catch (err) {
         showNotification("¡Mira las ofertas de empleo disponibles!");

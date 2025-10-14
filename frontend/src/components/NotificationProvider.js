@@ -15,11 +15,13 @@ export function NotificationProvider({ children }) {
   const [currentMessage, setCurrentMessage] = useState("");
 
   // Mostrar notificación y agregar a la lista y cola
-  const showNotification = useCallback((msg, duration = 3000) => {
+  // Permite pasar datos extra (ej: jobId) en la notificación
+  // Si la notificación es de insignia, data puede ser { type: 'insignia' }
+  const showNotification = useCallback((msg, duration = 3000, data = null) => {
     const id = Date.now() + Math.random();
     setNotifications((prev) => [
       ...prev,
-      { id, message: msg, read: false }
+      { id, message: msg, read: false, data }
     ]);
     setQueue((prev) => [...prev, { id, message: msg, duration }]);
   }, []);

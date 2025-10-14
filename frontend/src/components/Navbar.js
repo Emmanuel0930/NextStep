@@ -130,6 +130,7 @@ export default function Navbar() {
 export function NotificationBell() {
   const { notifications, unreadCount, markAllAsRead, clearNotifications } = useNotification();
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleClick = () => {
     setOpen((prev) => !prev);
@@ -141,6 +142,19 @@ export function NotificationBell() {
     n => n.message !== "¡Bienvenid@ a NextStep! 🎉" &&
        n.message !== "Sesión cerrada correctamente"
   );
+
+  // Si la notificación tiene data.jobId, navegar al detalle de ese empleo
+  // Si la notificación tiene data.type === 'insignia', navegar a /insignias
+  const handleNotificationClick = (notif) => {
+    if (notif.data && notif.data.jobId) {
+      navigate(`/jobs?jobId=${notif.data.jobId}`);
+    } else if (
+      (notif.data && notif.data.type === 'insignia') ||
+      (typeof notif.message === 'string' && notif.message.startsWith('🎉 ¡FELICITACIONES!'))
+    ) {
+      navigate('/insignias');
+    }
+  };
 
   return (
     <div className="relative">
@@ -172,7 +186,12 @@ export function NotificationBell() {
           ) : (
             <ul className="space-y-2 max-h-64 overflow-y-auto">
               {filteredNotifications.slice().reverse().map((notif) => (
-                <li key={notif.id} className={`p-3 rounded ${notif.read ? 'bg-gray-50' : 'bg-purple-100'} text-gray-800 text-sm shadow-sm`}>
+                <li
+                  key={notif.id}
+                  className={`p-3 rounded ${notif.read ? 'bg-gray-50' : 'bg-purple-100'} text-gray-800 text-sm shadow-sm cursor-pointer hover:bg-purple-200`}
+                  onClick={() => handleNotificationClick(notif)}
+                  title={notif.data && notif.data.jobId ? 'Ver oferta recomendada' : ''}
+                >
                   {notif.message}
                 </li>
               ))}
