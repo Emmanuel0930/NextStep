@@ -10,7 +10,10 @@ connectDB();
 
 // Middlewares
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: [
+    'http://localhost:3000',
+    'https://nextstep-front.loca.lt' // URL pública para pruebas con localtunnel
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']

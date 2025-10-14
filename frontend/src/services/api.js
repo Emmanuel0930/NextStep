@@ -39,6 +39,15 @@ export const login = async (email, password) => {
     throw error;
   }
 };
+
+export const register = async ({ nombreUsuario, correo, contraseña }) => {
+  try {
+    const response = await api.post('/registro', { nombreUsuario, correo, contraseña });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
 // ============ FUNCIONES DE EMPLEOS ============
 /**
  * Obtener lista de empleos desde la base de datos
