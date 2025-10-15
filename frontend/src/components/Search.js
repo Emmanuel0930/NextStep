@@ -9,7 +9,8 @@ import {
   DollarSign,
   MapPin,
   Zap,
-  ChevronDown
+  ChevronDown,
+  Clock
 } from 'lucide-react';
 
 export default function SearchComponent({ 
@@ -19,12 +20,13 @@ export default function SearchComponent({
   loading,
   jobs,
   filteredJobs,
-  onFiltersChange // Nueva prop para pasar filtros al padre
+  onFiltersChange
 }) {
   const [filters, setFilters] = useState({
     salarioMin: '',
     ciudad: '',
-    habilidades: ''
+    habilidades: '',
+    experienciaMin: '' // Nuevo filtro
   });
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [availableOptions, setAvailableOptions] = useState({
@@ -66,7 +68,8 @@ export default function SearchComponent({
     setFilters({
       salarioMin: '',
       ciudad: '',
-      habilidades: ''
+      habilidades: '',
+      experienciaMin: '' // Limpiar también experiencia
     });
     setSearchQuery('');
   };
@@ -150,7 +153,7 @@ export default function SearchComponent({
 
             {/* Filtros avanzados desplegables */}
             {showAdvancedFilters && (
-              <div className="mt-6 pt-6 border-t border-gray-200 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="mt-6 pt-6 border-t border-gray-200 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Salario mínimo */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
@@ -204,6 +207,27 @@ export default function SearchComponent({
                     {availableOptions.habilidades.map(habilidad => (
                       <option key={habilidad} value={habilidad}>{habilidad}</option>
                     ))}
+                  </select>
+                </div>
+
+                {/* Experiencia mínima - NUEVO */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-orange-600" />
+                    Experiencia mínima
+                  </label>
+                  <select
+                    value={filters.experienciaMin}
+                    onChange={(e) => handleFilterChange('experienciaMin', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                  >
+                    <option value="">Cualquier experiencia</option>
+                    <option value="0">Sin experiencia</option>
+                    <option value="1">1+ año</option>
+                    <option value="2">2+ años</option>
+                    <option value="3">3+ años</option>
+                    <option value="4">4+ años</option>
+                    <option value="5">5+ años</option>
                   </select>
                 </div>
               </div>

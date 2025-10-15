@@ -1,10 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { X, MapPin, DollarSign, Clock, User, CheckCircle, FileText } from "lucide-react";
 import { getJobs } from "../services/api";
 import SearchComponent from "../components/Search";
 import { useNotification } from "../components/NotificationProvider";
-import { useFeedback } from "../components/FeedbackProvider";
 
 
 export default function Jobs() {
@@ -18,7 +16,6 @@ export default function Jobs() {
   const [showModal, setShowModal] = useState(false);
   const [activeFilters, setActiveFilters] = useState({});
   const { showNotification } = useNotification();
-  const { showJobActionFeedback, showSuccessFeedback, triggerButtonSuccess } = useFeedback();
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -48,6 +45,7 @@ export default function Jobs() {
 
     fetchJobs();
   }, []);
+
   // Abrir automáticamente el modal si hay jobId en la URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -115,6 +113,19 @@ export default function Jobs() {
         );
       }
 
+      // Filtro por experiencia mínima
+      if (activeFilters.experienciaMin !== undefined && activeFilters.experienciaMin !== '') {
+        const expMin = parseInt(activeFilters.experienciaMin, 10);
+        results = results.filter(job => {
+          const jobExp = Number(job.añosExperiencia) || 0;
+          if (expMin === 0) {
+            // Filtrar solo trabajos que no requieran experiencia
+            return jobExp === 0;
+          }
+          return jobExp >= expMin;
+        });
+      }
+
       console.log(`Búsqueda + Filtros: ${results.length} resultados`);
       console.log('Filtros activos:', activeFilters);
       
@@ -135,15 +146,11 @@ export default function Jobs() {
     console.log('Job seleccionado completo:', job);
     setSelectedJob(job);
     setShowModal(true);
-    // Feedback sutil de que el empleo fue visualizado
-    showJobActionFeedback('viewed', job.nombre || job.titulo || 'Empleo');
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
     setSelectedJob(null);
-    // Feedback sutil al cerrar
-    showSuccessFeedback('Modal cerrado', { duration: 1000 });
   };
 
   const handleAplicarClick = async (jobId) => {
@@ -168,15 +175,14 @@ export default function Jobs() {
       const data = await response.json();
 
       if (data.success) {
-        const jobName = selectedJob?.nombre || selectedJob?.titulo || 'este empleo';
-        showJobActionFeedback('applied', jobName);
+        alert(data.message);
         handleCloseModal();
       } else {
-        showNotification(data.message || 'Error al aplicar al empleo', 4000);
+        alert(data.message || 'Error al aplicar al empleo');
       }
     } catch (error) {
       console.error('Error aplicando al empleo:', error);
-      showNotification('Error al aplicar al empleo. Intenta nuevamente.', 4000);
+      alert('Error al aplicar al empleo');
     }
   };
 
@@ -376,7 +382,7 @@ export default function Jobs() {
               <div className="flex gap-3 pt-4 border-t border-gray-200">
                 <button
                   onClick={() => handleAplicarClick(selectedJob.id)}
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 text-white py-3 px-6 rounded-xl font-semibold hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-lg hover:shadow-xl button-press hover-lift"
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 text-white py-3 px-6 rounded-xl font-semibold hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-lg hover:shadow-xl"
                 >
                   Aplicar Ahora
                 </button>
@@ -417,12 +423,11 @@ export default function Jobs() {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {filteredJobs.map((job, index) => (
+          {filteredJobs.map((job) => (
             <div
               key={job.id}
               onClick={() => handleJobClick(job)}
-              className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 cursor-pointer hover:shadow-lg hover:border-purple-200 transition-all flex flex-col justify-between hover-lift animate-fade-in-up"
-              style={{ animationDelay: `${index * 0.1}s` }}
+              className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 cursor-pointer hover:shadow-lg hover:border-purple-200 transition-all flex flex-col justify-between"
             >
               <div>
                 <h3 className="text-xl font-bold text-gray-800 mb-3 line-clamp-2">
