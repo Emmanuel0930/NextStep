@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNotification } from "../components/NotificationProvider";
+import { useFeedback } from "../components/FeedbackProvider";
 import { Award, Lock, Star, Calendar, CheckCircle, RefreshCw } from 'lucide-react';
 
 export default function Insignias() {
@@ -8,6 +9,7 @@ export default function Insignias() {
   const [error, setError] = useState('');
   const [verificando, setVerificando] = useState(false);
   const { showNotification } = useNotification();
+  const { celebrateAchievement, showSuccessFeedback, animateElement } = useFeedback();
 
   const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
 
@@ -70,9 +72,21 @@ export default function Insignias() {
         // Recargar los datos de la insignia
         await fetchInsignia();
         
-        // Mostrar notificación de felicitaciones
-        if (!data.insigniaYaObtenida) {
-          showNotification(`🎉 ¡Felicitaciones! ${data.message} ¡Has desbloqueado la insignia "${data.insignia.nombre}"!`, 6000);
+        // Mostrar animación de celebración si es una nueva insignia
+        if (!data.insigniaYaObtenida && data.insignia) {
+          celebrateAchievement({
+            nombre: data.insignia.nombre,
+            descripcion: data.insignia.descripcion,
+            icono: data.insignia.icono
+          }, { type: 'achievement' });
+          
+          // Animar el elemento de la insignia
+          setTimeout(() => {
+            animateElement('insignia-card', 'animate-celebration');
+          }, 3000);
+        } else {
+          // Mostrar feedback de éxito sin la animación completa
+          showSuccessFeedback('¡Perfil verificado correctamente! ✅');
         }
       }
     } catch (error) {
@@ -103,7 +117,7 @@ export default function Insignias() {
           <button
             onClick={handleVerificarManual}
             disabled={verificando}
-            className="mt-4 inline-flex items-center gap-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg transition-all disabled:opacity-50"
+            className="mt-4 inline-flex items-center gap-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg transition-all disabled:opacity-50 button-press hover-lift"
           >
             {verificando ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
@@ -112,6 +126,46 @@ export default function Insignias() {
             )}
             {verificando ? 'Verificando...' : 'Verificar Progreso'}
           </button>
+          
+          {/* Botones de prueba para demostración */}
+          <div className="mt-4 flex flex-wrap gap-2 justify-center">
+            <button
+              onClick={() => {
+                celebrateAchievement({
+                  nombre: "¡Logro de Prueba!",
+                  descripcion: "Demostración del sistema de animaciones con partículas",
+                  icono: "🏆"
+                }, { type: 'achievement' });
+              }}
+              className="bg-yellow-500/20 text-white px-3 py-1 rounded-lg text-sm hover:bg-yellow-500/30 transition-all button-press"
+            >
+              🏆 Probar Logro
+            </button>
+            <button
+              onClick={() => {
+                celebrateAchievement({
+                  nombre: "¡Éxito Completado!",
+                  descripcion: "Has dominado el sistema de feedback instantáneo",
+                  icono: "✅"
+                }, { type: 'success' });
+              }}
+              className="bg-green-500/20 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-500/30 transition-all button-press"
+            >
+              ✅ Probar Éxito
+            </button>
+            <button
+              onClick={() => {
+                celebrateAchievement({
+                  nombre: "¡Hito Alcanzado!",
+                  descripcion: "Has llegado a un punto importante en tu progreso",
+                  icono: "🌟"
+                }, { type: 'milestone' });
+              }}
+              className="bg-purple-500/20 text-white px-3 py-1 rounded-lg text-sm hover:bg-purple-500/30 transition-all button-press"
+            >
+              🌟 Probar Hito
+            </button>
+          </div>
         </div>
       </div>
 
@@ -180,10 +234,23 @@ export default function Insignias() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
                 href="/perfil"
-                className="inline-block bg-white text-purple-600 px-8 py-3 rounded-xl font-semibold hover:bg-purple-50 transition-all shadow-lg hover:shadow-xl"
+                className="inline-block bg-white text-purple-600 px-8 py-3 rounded-xl font-semibold hover:bg-purple-50 transition-all shadow-lg hover:shadow-xl button-press hover-lift"
               >
                 Ir a Mi Perfil
               </a>
+              <button
+                onClick={() => {
+                  // Simular logro para prueba
+                  celebrateAchievement({
+                    nombre: "¡Logro de Prueba!",
+                    descripcion: "Esta es una demostración del sistema de animaciones",
+                    icono: "🎯"
+                  }, { type: 'achievement' });
+                }}
+                className="inline-block bg-white/20 text-white px-8 py-3 rounded-xl font-semibold hover:bg-white/30 transition-all shadow-lg hover:shadow-xl button-press hover-lift border border-white/30"
+              >
+                🎯 Probar Animación
+              </button>
               <button
                 onClick={handleVerificarManual}
                 disabled={verificando}
@@ -210,7 +277,8 @@ function InsigniaCard({ insignia, obtenida }) {
 
   return (
     <div
-      className={`relative rounded-2xl p-6 shadow-lg transition-all duration-300 ${
+      id="insignia-card"
+      className={`relative rounded-2xl p-6 shadow-lg transition-all duration-300 hover-lift ${
         obtenida
           ? 'bg-gradient-to-br from-yellow-50 to-amber-50 border-2 border-yellow-300 hover:shadow-xl hover:scale-105'
           : 'bg-gray-50 border-2 border-gray-200 opacity-75'

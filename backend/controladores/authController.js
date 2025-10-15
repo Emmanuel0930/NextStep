@@ -1,6 +1,7 @@
 
 const Cuenta = require('../../datos/modelos/Cuenta');
 const Ingresos = require('../../datos/modelos/Ingresos');
+const Racha = require('../../datos/modelos/Racha');
 
 const authController = {
   // Login de usuario
@@ -38,7 +39,48 @@ const authController = {
       // Actualizar último login
       await usuario.actualizarLogin();
 
-      console.log('LOGIN EXITOSO para:', usuario.nombreUsuario);
+      // Actualizar racha diaria
+      let racha = await Racha.findOne({ cuentaId: usuario._id });
+      let rachaInfo = null;
+      
+      if (!racha) {
+        // Crear nueva racha
+        racha = new Racha({ 
+          cuentaId: usuario._id,
+          rachaActual: 1,
+          mejorRacha: 1,
+          ultimoLogin: new Date(),
+          fechaInicioRachaActual: new Date(),
+          totalDiasConLogin: 1
+        });
+        await racha.save();
+        rachaInfo = {
+          tipoEvento: 'nueva',
+          racha: racha.obtenerEstadisticas(),
+          mensaje: '¡Bienvenido! Has comenzado tu primera racha diaria 🔥'
+        };
+      } else {
+        // Actualizar racha existente
+        const rachaAnterior = racha.rachaActual;
+        racha.actualizarRacha();
+        await racha.save();
+        
+        let tipoEvento = 'mantenida';
+        if (racha.rachaActual > rachaAnterior) {
+          tipoEvento = 'incrementada';
+        } else if (racha.rachaActual === 1 && rachaAnterior > 1) {
+          tipoEvento = 'reiniciada';
+        }
+        
+        rachaInfo = {
+          tipoEvento,
+          racha: racha.obtenerEstadisticas(),
+          rachaAnterior,
+          mensaje: obtenerMensajeRacha(racha.rachaActual, tipoEvento)
+        };
+      }
+
+      console.log('LOGIN EXITOSO para:', usuario.nombreUsuario, '- Racha:', racha.rachaActual);
 
       res.json({
         success: true,
@@ -49,7 +91,8 @@ const authController = {
           puntos: usuario.puntos,
           nivel: usuario.nivel,
           porcentajePerfil: usuario.porcentajePerfil
-        }
+        },
+        racha: rachaInfo
       });
 
     } catch (error) {
@@ -121,5 +164,46 @@ const authController = {
     }
   }
 };
+
+// Función auxiliar para generar mensajes motivadores de racha
+function obtenerMensajeRacha(dias, tipo) {
+  const mensajes = {
+    nueva: [
+      '¡Bienvenido! Has comenzado tu primera racha diaria 🔥',
+      '¡Excelente! Tu aventura de constancia comienza ahora 🌟'
+    ],
+    incrementada: {
+      1: ['¡Perfecto! Has comenzado tu racha diaria 🔥', '¡Primer día completado! 💪'],
+      3: ['¡3 días seguidos! Vas por buen camino 🚀', '¡Excelente constancia! 3 días consecutivos ⭐'],
+      7: ['¡Una semana completa! Eres imparable 🏆', '¡7 días de constancia! Increíble dedicación 🌟'],
+      14: ['¡2 semanas consecutivas! Eres una leyenda 👑', '¡14 días seguidos! Tu disciplina es admirable 💎'],
+      30: ['¡UN MES COMPLETO! Eres oficialmente imparable 🏅', '¡30 días de constancia! Eres un verdadero campeón 🔥']
+    },
+    mantenida: [
+      '¡Racha mantenida! Sigue así 💪',
+      '¡Constancia perfecta! 🔥',
+      '¡Otro día más en tu racha! 🌟'
+    ],
+    reiniciada: [
+      '¡No te preocupes! Una nueva racha comienza hoy 🌱',
+      '¡Nuevo comienzo! La constancia se construye día a día 💪',
+      '¡Reinicio exitoso! Cada día es una nueva oportunidad 🌟'
+    ]
+  };
+
+  if (tipo === 'incrementada') {
+    const diasEspeciales = [30, 14, 7, 3, 1];
+    for (let dia of diasEspeciales) {
+      if (dias >= dia && mensajes.incrementada[dia]) {
+        const mensajesDisponibles = mensajes.incrementada[dia];
+        return mensajesDisponibles[Math.floor(Math.random() * mensajesDisponibles.length)];
+      }
+    }
+    return `¡${dias} días consecutivos! Tu constancia es admirable 🔥`;
+  }
+
+  const mensajesDisponibles = mensajes[tipo] || mensajes.mantenida;
+  return mensajesDisponibles[Math.floor(Math.random() * mensajesDisponibles.length)];
+}
 
 module.exports = authController;

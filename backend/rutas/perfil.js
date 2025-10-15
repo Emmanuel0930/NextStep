@@ -71,11 +71,25 @@ router.get('/perfil/:userId', async (req, res) => {
   }
 });
 
+// Importar sistema de niveles
+const { calcularNivel } = require('../../datos/utils/nivelesSystem');
+
 // Función auxiliar para dar puntos UNA SOLA VEZ
 async function darPuntosNivel(cuentaId, puntos, nivelNumero) {
-  await Cuenta.findByIdAndUpdate(cuentaId, {
+  const cuenta = await Cuenta.findByIdAndUpdate(cuentaId, {
     $inc: { puntos: puntos }
-  });
+  }, { new: true });
+  
+  // Calcular y actualizar nivel automáticamente
+  const nuevoNivelData = calcularNivel(cuenta.puntos);
+  const nivelAnterior = cuenta.nivel;
+  
+  if (nuevoNivelData.nivel !== nivelAnterior) {
+    await Cuenta.findByIdAndUpdate(cuentaId, {
+      nivel: nuevoNivelData.nivel
+    });
+    console.log(`🎉 ¡SUBIDA DE NIVEL! ${nivelAnterior} → ${nuevoNivelData.nivel} (${nuevoNivelData.nombre})`);
+  }
   
   await Ingresos.create({
     cuentaId,
@@ -83,6 +97,14 @@ async function darPuntosNivel(cuentaId, puntos, nivelNumero) {
   });
   
   console.log(`✅ ${puntos} puntos otorgados por completar Nivel ${nivelNumero}`);
+  
+  return {
+    puntosNuevos: cuenta.puntos,
+    nivelAnterior,
+    nivelNuevo: nuevoNivelData.nivel,
+    subioDeNivel: nuevoNivelData.nivel !== nivelAnterior,
+    datosNivel: nuevoNivelData
+  };
 }
 
 // Actualizar Nivel 1 (Información Básica)
@@ -109,13 +131,16 @@ router.put('/perfil/nivel1', async (req, res) => {
 
     // SOLO dar puntos si NO estaba completado antes
     if (!yaCompletado) {
-      await darPuntosNivel(cuentaId, 50, 1);
+      const resultadoPuntos = await darPuntosNivel(cuentaId, 50, 1);
       
       res.json({
         success: true,
-        message: 'Nivel 1 completado +50 puntos',
+        message: resultadoPuntos.subioDeNivel 
+          ? `Nivel 1 completado +50 puntos | ¡SUBISTE A ${resultadoPuntos.datosNivel.nombre}! 🎉`
+          : 'Nivel 1 completado +50 puntos',
         nivel1, 
-        puntosOtorgados: true
+        puntosOtorgados: true,
+        nivelInfo: resultadoPuntos
       });
     } else {
       res.json({
@@ -154,13 +179,16 @@ router.put('/perfil/nivel2', async (req, res) => {
     );
 
     if (!yaCompletado) {
-      await darPuntosNivel(cuentaId, 75, 2);
+      const resultadoPuntos = await darPuntosNivel(cuentaId, 75, 2);
       
       res.json({
         success: true,
-        message: 'Nivel 2 completado +75 puntos',
+        message: resultadoPuntos.subioDeNivel 
+          ? `Nivel 2 completado +75 puntos | ¡SUBISTE A ${resultadoPuntos.datosNivel.nombre}! 🎉`
+          : 'Nivel 2 completado +75 puntos',
         nivel2, 
-        puntosOtorgados: true
+        puntosOtorgados: true,
+        nivelInfo: resultadoPuntos
       });
     } else {
       res.json({
@@ -199,13 +227,16 @@ router.put('/perfil/nivel3', async (req, res) => {
     );
 
     if (!yaCompletado) {
-      await darPuntosNivel(cuentaId, 60, 3);
+      const resultadoPuntos = await darPuntosNivel(cuentaId, 60, 3);
       
       res.json({
         success: true,
-        message: 'Nivel 3 completado +60 puntos',
+        message: resultadoPuntos.subioDeNivel 
+          ? `Nivel 3 completado +60 puntos | ¡SUBISTE A ${resultadoPuntos.datosNivel.nombre}! 🎉`
+          : 'Nivel 3 completado +60 puntos',
         nivel3,
-        puntosOtorgados: true
+        puntosOtorgados: true,
+        nivelInfo: resultadoPuntos
       });
     } else {
       res.json({
@@ -244,13 +275,16 @@ router.put('/perfil/nivel4', async (req, res) => {
     );
 
     if (!yaCompletado) {
-      await darPuntosNivel(cuentaId, 40, 4);
+      const resultadoPuntos = await darPuntosNivel(cuentaId, 40, 4);
       
       res.json({
         success: true,
-        message: 'Nivel 4 completado +40 puntos',
+        message: resultadoPuntos.subioDeNivel 
+          ? `Nivel 4 completado +40 puntos | ¡SUBISTE A ${resultadoPuntos.datosNivel.nombre}! 🎉`
+          : 'Nivel 4 completado +40 puntos',
         nivel4,
-        puntosOtorgados: true
+        puntosOtorgados: true,
+        nivelInfo: resultadoPuntos
       });
     } else {
       res.json({

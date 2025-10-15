@@ -25,7 +25,9 @@ const authRoutes = require('./rutas/auth');
 const empleosRoutes = require('./rutas/empleos');
 const perfilRoutes = require('./rutas/perfil');
 const aplicacionesRoutes = require('./rutas/aplicaciones');
-const insigniasRoutes = require('./rutas/insignias'); 
+const insigniasRoutes = require('./rutas/insignias');
+const rachasRoutes = require('./rutas/rachas');
+const notificacionesRoutes = require('./rutas/notificaciones'); 
 
 // Usar rutas
 app.use('/api', authRoutes);
@@ -33,6 +35,8 @@ app.use('/api', empleosRoutes);
 app.use('/api', perfilRoutes);
 app.use('/api', aplicacionesRoutes);
 app.use('/api/insignias', insigniasRoutes);
+app.use('/api/rachas', rachasRoutes);
+app.use('/api/notificaciones', notificacionesRoutes);
 
 // Ruta raíz
 app.get('/', (req, res) => {
@@ -49,12 +53,18 @@ app.get('/', (req, res) => {
       'PUT /api/perfil/nivel2',
       'PUT /api/perfil/nivel3',
       'PUT /api/perfil/nivel4',
-      'GET /api/streak',
-      'GET /api/notifications',
       'GET /api/stats',
       'POST /api/aplicar',
       'GET /api/insignias/insignia/:cuentaId',
-      'POST /api/insignias/verificar-perfil-completo'
+      'POST /api/insignias/verificar-perfil-completo',
+      '--- RACHAS DIARIAS ---',
+      'GET /api/rachas/estadisticas/:cuentaId',
+      'POST /api/rachas/actualizar-login',
+      'POST /api/rachas/configurar-notificaciones',
+      '--- NOTIFICACIONES ---',
+      'GET /api/notificaciones/usuarios-notificacion',
+      'POST /api/notificaciones/enviar-notificacion-manual',
+      'POST /api/notificaciones/sistema/:accion'
     ]
   });
 });

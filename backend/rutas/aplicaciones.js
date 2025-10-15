@@ -3,6 +3,7 @@ const router = express.Router();
 const InteraccionEmpleosCuenta = require('../../datos/modelos/InteraccionEmpleosCuenta');
 const Ingresos = require('../../datos/modelos/Ingresos');
 const Cuenta = require('../../datos/modelos/Cuenta');
+const { calcularNivel } = require('../../datos/utils/nivelesSystem');
 
 //Aplicar a un empleo
 router.post('/aplicar', async (req, res) => {
@@ -39,10 +40,19 @@ router.post('/aplicar', async (req, res) => {
       puntosGanados: 10
     });
 
-    // Actualizar puntos en cuenta
-    await Cuenta.findByIdAndUpdate(cuentaId, {
-      $inc: { puntos: 1 }
-    });
+    // Actualizar puntos en cuenta y verificar subida de nivel
+    const cuenta = await Cuenta.findByIdAndUpdate(cuentaId, {
+      $inc: { puntos: 10 }
+    }, { new: true });
+
+    // Verificar subida de nivel automática
+    const nuevoNivelData = calcularNivel(cuenta.puntos);
+    if (nuevoNivelData.nivel !== cuenta.nivel) {
+      await Cuenta.findByIdAndUpdate(cuentaId, {
+        nivel: nuevoNivelData.nivel
+      });
+      console.log(`🎉 ¡SUBIDA DE NIVEL! Usuario ${cuentaId}: ${cuenta.nivel} → ${nuevoNivelData.nivel} (${nuevoNivelData.nombre})`);
+    }
 
     res.json({
       success: true,

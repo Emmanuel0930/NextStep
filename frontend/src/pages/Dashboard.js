@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { User, Trophy, Target, Zap, Briefcase, MapPin, DollarSign } from 'lucide-react';
+import NivelDisplay from "../components/NivelDisplay";
+import StreakCounter from "../components/StreakCounter";
+import { calcularNivel, getSiguienteNivel, calcularProgreso } from "../utils/nivelesSystem";
 
 export default function Dashboard() {
   const [applicationsCount, setApplicationsCount] = useState(0);
@@ -10,9 +13,13 @@ export default function Dashboard() {
   const [level, setLevel] = useState(1);
   const [streak, setStreak] = useState(0);
   const [userProfile, setUserProfile] = useState(null);
+  const [rachaData, setRachaData] = useState(null);
 
-  const maxPoints = 500;
-  const progressPercentage = (points / maxPoints) * 100;
+  // Usar el sistema de niveles dinámico
+  const currentLevelInfo = calcularNivel(points);
+  const nextLevelInfo = getSiguienteNivel(points);
+  const progressPercentage = calcularProgreso(points);
+  const maxPoints = nextLevelInfo ? nextLevelInfo.puntosMinimos : currentLevelInfo.puntosMaximos;
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -49,6 +56,20 @@ export default function Dashboard() {
             };
             localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
           }
+        }
+
+        // Obtener datos de racha
+        try {
+          const rachaResponse = await fetch(`http://localhost:5000/api/rachas/estadisticas/${userId}`);
+          if (rachaResponse.ok) {
+            const rachaResult = await rachaResponse.json();
+            if (rachaResult.success) {
+              setRachaData(rachaResult.estadisticas);
+              setStreak(rachaResult.estadisticas.rachaActual);
+            }
+          }
+        } catch (error) {
+          console.error('Error cargando datos de racha:', error);
         }
 
         //Obtener número de postulaciones
@@ -148,6 +169,188 @@ export default function Dashboard() {
     alert('¡Hola! Soy tu asistente virtual. El chatbot estará disponible pronto 🤖');
   };
 
+  // Sistema de retos dinámicos
+  const getSiguienteReto = () => {
+    const porcentajePerfil = userProfile?.porcentajePerfil || 0;
+    const puntosActuales = points || 0;
+    const rachaActual = rachaData?.rachaActual || 0;
+    const aplicacionesCount = applicationsCount || 0;
+    
+    // Definir retos según el progreso del usuario
+    const retos = [
+      // Retos de perfil (prioridad alta si no está completo)
+      {
+        id: 'perfil_25',
+        condition: porcentajePerfil < 25,
+        titulo: 'Completa tu información básica',
+        descripcion: 'Agrega tu información personal y de contacto para obtener mejores recomendaciones',
+        puntos: 50,
+        progreso: porcentajePerfil,
+        meta: 25
+      },
+      {
+        id: 'perfil_50',
+        condition: porcentajePerfil >= 25 && porcentajePerfil < 50,
+        titulo: 'Completa tu experiencia laboral',
+        descripcion: 'Agrega tu historial profesional para destacar ante los empleadores',
+        puntos: 75,
+        progreso: porcentajePerfil,
+        meta: 50
+      },
+      {
+        id: 'perfil_75',
+        condition: porcentajePerfil >= 50 && porcentajePerfil < 75,
+        titulo: 'Completa tu formación académica',
+        descripcion: 'Agrega tus estudios y certificaciones para mostrar tus competencias',
+        puntos: 75,
+        progreso: porcentajePerfil,
+        meta: 75
+      },
+      {
+        id: 'perfil_100',
+        condition: porcentajePerfil >= 75 && porcentajePerfil < 100,
+        titulo: 'Completa tu perfil al 100%',
+        descripcion: 'Termina de completar todas las secciones y obtén tu insignia especial',
+        puntos: 100,
+        progreso: porcentajePerfil,
+        meta: 100
+      },
+
+      // Retos de aplicaciones (después del perfil completo)
+      {
+        id: 'primera_aplicacion',
+        condition: porcentajePerfil >= 50 && aplicacionesCount === 0,
+        titulo: 'Aplica a tu primer empleo',
+        descripcion: 'Da el primer paso enviando tu primera postulación',
+        puntos: 10,
+        progreso: 0,
+        meta: 1
+      },
+      {
+        id: 'aplicaciones_5',
+        condition: aplicacionesCount >= 1 && aplicacionesCount < 5,
+        titulo: 'Aplica a 5 empleos',
+        descripcion: 'Aumenta tus oportunidades postulándote a más puestos de trabajo',
+        puntos: 50,
+        progreso: aplicacionesCount,
+        meta: 5
+      },
+      {
+        id: 'aplicaciones_10',
+        condition: aplicacionesCount >= 5 && aplicacionesCount < 10,
+        titulo: 'Alcanza 10 aplicaciones',
+        descripcion: 'Mantén un nivel alto de postulaciones para maximizar tus opciones',
+        puntos: 100,
+        progreso: aplicacionesCount,
+        meta: 10
+      },
+
+      // Retos de racha
+      {
+        id: 'racha_3',
+        condition: rachaActual >= 0 && rachaActual < 3,
+        titulo: 'Racha de 3 días',
+        descripcion: 'Mantén tu constancia ingresando por 3 días seguidos',
+        puntos: 0,
+        progreso: rachaActual,
+        meta: 3
+      },
+      {
+        id: 'racha_7',
+        condition: rachaActual >= 3 && rachaActual < 7,
+        titulo: 'Una semana completa',
+        descripcion: 'Logra 7 días consecutivos de actividad en la plataforma',
+        puntos: 0,
+        progreso: rachaActual,
+        meta: 7
+      },
+      {
+        id: 'racha_30',
+        condition: rachaActual >= 7 && rachaActual < 30,
+        titulo: 'Racha legendaria',
+        descripcion: 'Alcanza 30 días seguidos de actividad - ¡Un logro increíble!',
+        puntos: 0,
+        progreso: rachaActual,
+        meta: 30
+      },
+
+      // Retos de puntos/niveles
+      {
+        id: 'puntos_500',
+        condition: puntosActuales >= 100 && puntosActuales < 500,
+        titulo: 'Alcanza 500 puntos',
+        descripcion: 'Completa actividades en la plataforma para acumular más puntos',
+        puntos: puntosActuales,
+        progreso: puntosActuales,
+        meta: 500
+      },
+      {
+        id: 'puntos_1000',
+        condition: puntosActuales >= 500 && puntosActuales < 1000,
+        titulo: 'Alcanza 1000 puntos',
+        descripcion: 'Continúa completando actividades para llegar a este hito importante',
+        puntos: puntosActuales,
+        progreso: puntosActuales,
+        meta: 1000
+      },
+
+      // Reto por defecto para usuarios avanzados
+      {
+        id: 'mantener_actividad',
+        condition: porcentajePerfil === 100 && aplicacionesCount >= 10 && rachaActual >= 7,
+        titulo: 'Mantén tu progreso',
+        descripcion: 'Continúa tu actividad diaria postulándote y manteniendo tu racha',
+        puntos: 0,
+        progreso: 1,
+        meta: 1
+      }
+    ];
+
+    // Encontrar el primer reto que cumple la condición
+    const retoActual = retos.find(reto => reto.condition);
+    
+    if (!retoActual) {
+      return (
+        <div className="text-center py-4">
+          <span className="text-6xl">🎉</span>
+          <p className="text-gray-600 mt-2">¡Has completado todos los retos disponibles!</p>
+          <p className="text-sm text-gray-500 mt-1">Mantén tu actividad diaria para seguir creciendo</p>
+        </div>
+      );
+    }
+
+    const porcentajeProgreso = retoActual.meta > 0 ? Math.min((retoActual.progreso / retoActual.meta) * 100, 100) : 0;
+
+    return (
+      <div>
+        <p className="text-gray-500 mb-3">
+          {retoActual.titulo.replace(/[🎯📝💼🎓⭐🚀📊🔥⚡👑💎🏆🌟✨]/g, '').trim()}
+        </p>
+        
+        {/* Mostrar progreso si es aplicable */}
+        {retoActual.meta > 0 && retoActual.progreso !== undefined && (
+          <div className="mb-2">
+            <div className="flex items-center justify-between text-sm text-gray-600 mb-1">
+              <span>Progreso actual</span>
+              <span>{retoActual.progreso} / {retoActual.meta}</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded h-1.5">
+              <div 
+                className="h-1.5 rounded bg-purple-600 transition-all duration-500"
+                style={{ width: `${porcentajeProgreso}%` }}
+              />
+            </div>
+          </div>
+        )}
+        
+        {/* Descripción adicional */}
+        <p className="text-sm text-gray-400">
+          {retoActual.descripcion}
+        </p>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 relative overflow-hidden">
       <div className="absolute -left-32 -bottom-32 w-[500px] h-[500px] md:w-[800px] md:h-[800px] bg-purple-500 rounded-full opacity-30 z-0 pointer-events-none"></div>
@@ -182,57 +385,48 @@ export default function Dashboard() {
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 z-10 relative">
                 <h2 className="text-xl font-semibold text-purple-600 mb-3">Puntos</h2>
                 <div className="text-5xl md:text-6xl font-bold text-purple-600 mb-2">
-                  {points}/{maxPoints}
+                  {points}{nextLevelInfo ? `/${maxPoints}` : ''}
                 </div>
                 <p className="text-gray-500 text-base">
-                  {points >= maxPoints 
-                    ? "¡Felicidades! Has alcanzado el máximo de puntos" 
-                    : "Continúa así, pronto encontrarás la oportunidad ideal"}
+                  {!nextLevelInfo 
+                    ? "¡Felicidades! Has alcanzado el nivel máximo" 
+                    : `Te faltan ${maxPoints - points} puntos para el nivel ${nextLevelInfo.nivel} - ${nextLevelInfo.nombre}`}
                 </p>
               </div>
 
+              {/* Nuevo sistema de niveles */}
+              <NivelDisplay puntos={points} showProgress={true} size="normal" />
+
+              {/* Sistema de Retos Dinámicos */}
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 z-10 relative">
-                <h3 className="text-xl font-semibold text-purple-600 mb-3">NIVEL {level}</h3>
-                <p className="text-gray-500 mb-4">
-                  {points >= maxPoints 
-                    ? "¡Nivel máximo alcanzado!" 
-                    : `Estás a ${maxPoints - points} puntos de subir de nivel`}
-                </p>
-                
-                <div className="relative mb-2">
-                  <div className="w-full bg-purple-200 rounded-full h-4">
-                    <div 
-                      className="bg-gradient-to-r from-purple-600 to-purple-700 h-4 rounded-full transition-all duration-300"
-                      style={{ width: `${progressPercentage}%` }}
-                    ></div>
-                  </div>
-                  <div 
-                    className="absolute top-0 w-1 bg-gray-600 h-4 rounded-sm"
-                    style={{ left: `${progressPercentage}%` }}
-                  ></div>
-                </div>
+                <h3 className="text-xl font-semibold text-purple-600 mb-3 flex items-center gap-2">
+                  <Target className="w-5 h-5" />
+                  Siguiente Reto
+                </h3>
+                {getSiguienteReto()}
               </div>
 
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 z-10 relative">
-                <h3 className="text-xl font-semibold text-purple-600 mb-3">Siguiente Meta</h3>
-                <p className="text-gray-500">
-                  {userProfile?.porcentajePerfil === 100 
-                    ? "¡Perfil completo al 100%!" 
-                    : `Completa tu perfil al 100% (actual: ${userProfile?.porcentajePerfil || 20}%)`}
-                </p>
-              </div>
-
+              {/* Racha Diaria - Mobile */}
               <div className="bg-gradient-to-br from-purple-600 to-purple-800 rounded-2xl p-6 text-white relative overflow-hidden lg:hidden z-10">
                 <div className="relative z-10 pr-20">
-                  <h3 className="text-xl font-bold mb-2">Reto Semanal De Racha</h3>
+                  <h3 className="text-xl font-bold mb-2">Tu Racha Diaria 🔥</h3>
                   <p className="text-purple-100">
-                    Llevas {streak} días consecutivos
+                    {rachaData ? (
+                      rachaData.rachaActual > 0 
+                        ? `¡${rachaData.rachaActual} días consecutivos!`
+                        : 'Comienza tu racha hoy'
+                    ) : 'Cargando racha...'}
                   </p>
+                  {rachaData?.mejorRacha > 0 && (
+                    <p className="text-purple-200 text-sm mt-1">
+                      Mejor racha: {rachaData.mejorRacha} días
+                    </p>
+                  )}
                 </div>
                 <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                  <div className="w-16 h-16 rounded-full bg-blue-400 flex items-center justify-center shadow-lg">
-                    <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center">
-                      <Zap className="w-6 h-6 text-white" />
+                  <div className="w-16 h-16 rounded-full bg-orange-400 flex items-center justify-center shadow-lg">
+                    <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center">
+                      <span className="text-2xl">🔥</span>
                     </div>
                   </div>
                   <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-red-500 rounded-full"></div>
@@ -241,13 +435,41 @@ export default function Dashboard() {
             </div>
 
             <div className="space-y-6">
-              <div className="grid grid-cols-2 lg:grid-cols-1 gap-4">
+              {/* Componente de Racha Completo - Desktop */}
+              <div className="hidden lg:block">
+                <StreakCounter 
+                  cuentaId={localStorage.getItem('userId')} 
+                  size="normal" 
+                  showConfig={false}
+                />
+              </div>
+
+              {/* Tarjeta de Postulaciones - Desktop */}
+              <div className="hidden lg:block bg-white rounded-2xl p-6 shadow-sm border border-gray-100 z-10 relative">
+                <div className="flex items-center space-x-3 mb-3">
+                  <Target className="w-6 h-6 text-green-500" />
+                  <span className="text-gray-700 font-semibold">Mis Postulaciones</span>
+                </div>
+                <div className="text-3xl font-bold text-gray-800 mb-2">{applicationsCount}</div>
+                <p className="text-gray-500 text-sm">
+                  {applicationsCount === 0 
+                    ? 'Aún no has enviado postulaciones' 
+                    : applicationsCount === 1 
+                      ? 'Postulación enviada' 
+                      : 'Postulaciones enviadas'
+                  }
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-2 lg:grid-cols-1 gap-4 lg:hidden">
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 z-10 relative">
                   <div className="flex items-center space-x-3 mb-3">
-                    <Zap className="w-6 h-6 text-yellow-500" />
+                    <span className="text-2xl">🔥</span>
                     <span className="text-gray-500 font-medium">Racha actual</span>
                   </div>
-                  <div className="text-3xl font-bold text-gray-800">{streak} días</div>
+                  <div className="text-3xl font-bold text-purple-800">
+                    {rachaData?.rachaActual || 0} días
+                  </div>
                 </div>
                 
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 z-10 relative">
@@ -259,17 +481,27 @@ export default function Dashboard() {
                 </div>
               </div>
 
+              {/* Card de Racha para escritorio - Simplificado */}
               <div className="hidden lg:block bg-gradient-to-br from-purple-600 to-purple-800 rounded-2xl p-6 text-white relative overflow-hidden z-10">
                 <div className="relative z-10 pr-20">
-                  <h3 className="text-lg font-bold mb-2">Reto Semanal De Racha</h3>
+                  <h3 className="text-lg font-bold mb-2">Tu Racha Diaria 🔥</h3>
                   <p className="text-purple-100 text-sm">
-                    Llevas {streak} días consecutivos
+                    {rachaData ? (
+                      rachaData.rachaActual > 0 
+                        ? `¡${rachaData.rachaActual} días consecutivos!`
+                        : 'Comienza tu racha hoy'
+                    ) : 'Cargando racha...'}
                   </p>
+                  {rachaData?.mejorRacha > 0 && (
+                    <p className="text-purple-200 text-xs mt-1">
+                      Mejor racha: {rachaData.mejorRacha} días
+                    </p>
+                  )}
                 </div>
                 <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                  <div className="w-16 h-16 rounded-full bg-blue-400 flex items-center justify-center shadow-lg">
-                    <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center">
-                      <Zap className="w-6 h-6 text-white" />
+                  <div className="w-16 h-16 rounded-full bg-orange-400 flex items-center justify-center shadow-lg">
+                    <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center">
+                      <span className="text-2xl">🔥</span>
                     </div>
                   </div>
                   <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-red-500 rounded-full"></div>

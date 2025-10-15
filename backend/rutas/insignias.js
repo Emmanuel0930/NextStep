@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Insignias = require('../../datos/modelos/Insignias');
 const Cuenta = require('../../datos/modelos/Cuenta');
+const Ingresos = require('../../datos/modelos/Ingresos');
+const { calcularNivel } = require('../../datos/utils/nivelesSystem');
 const Nivel1 = require('../../datos/modelos/Nivel1');
 const Nivel2 = require('../../datos/modelos/Nivel2');
 const Nivel3 = require('../../datos/modelos/Nivel3');
@@ -87,9 +89,19 @@ router.post('/verificar-perfil-completo', async (req, res) => {
 
     // Dar puntos bonus por completar el perfil
     const PUNTOS_BONUS = 100;
-    await Cuenta.findByIdAndUpdate(cuentaId, {
+    const cuenta = await Cuenta.findByIdAndUpdate(cuentaId, {
       $inc: { puntos: PUNTOS_BONUS }
-    });
+    }, { new: true });
+
+    // Recalcular nivel después de otorgar puntos
+    const nivelActual = cuenta.nivel || 'Novato';
+    const nuevoNivel = calcularNivel(cuenta.puntos);
+    
+    if (nivelActual !== nuevoNivel) {
+      cuenta.nivel = nuevoNivel;
+      await cuenta.save();
+      console.log(`¡Usuario ${cuenta.email} subió de nivel por insignia! ${nivelActual} → ${nuevoNivel}`);
+    }
 
     console.log(`Insignia otorgada a usuario ${cuentaId}`);
 

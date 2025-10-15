@@ -9,6 +9,7 @@ import Perfil from './pages/Perfil';
 import Insignias from './pages/Insignias'; 
 import ProtectedRoute from './components/ProtectedRoute';
 import { useNotification } from "./components/NotificationProvider";
+import FeedbackProvider from "./components/FeedbackProvider";
 
 function App() {
   const { showNotification } = useNotification();
@@ -38,10 +39,11 @@ function App() {
   }, [showNotification]);
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Router>
-        {localStorage.getItem('userId') && <Navbar />}
-        <Routes>
+    <FeedbackProvider>
+      <div className="min-h-screen bg-gray-100">
+        <Router>
+          {localStorage.getItem('userId') && <Navbar />}
+          <Routes>
           <Route path="/" element={<Navigate to={localStorage.getItem('userId') ? "/dashboard" : "/login"} replace />} />
           {/* Rutas públicas (accesibles sin login) */}
           <Route path="/login" element={<Login />} />
@@ -72,6 +74,7 @@ function App() {
         </Routes>
       </Router>
     </div>
+    </FeedbackProvider>
   );
 }
 

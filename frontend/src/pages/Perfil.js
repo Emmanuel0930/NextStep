@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 
 import { useNotification } from "../components/NotificationProvider";
+import { useFeedback } from "../components/FeedbackProvider";
+import PushNotifications from "../components/PushNotifications";
 export default function Perfil() {
   const [activeLevel, setActiveLevel] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -13,6 +15,7 @@ export default function Perfil() {
   const [formData, setFormData] = useState({});
   const [saveStatus, setSaveStatus] = useState({});
   const [editMode, setEditMode] = useState(false);
+  const { showProfileActionFeedback, showSuccessFeedback, showProgressFeedback, animateElement, celebrateAchievement } = useFeedback();
 
   const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
 
@@ -210,6 +213,28 @@ export default function Perfil() {
       await fetchUserProfile();
       await verificarInsigniaPerfilCompleto();
       
+      // Detectar subida de nivel y mostrar animación especial
+      if (data.nivelInfo && data.nivelInfo.subioDeNivel) {
+        celebrateAchievement({
+          nombre: `¡SUBISTE DE NIVEL!`,
+          descripcion: `Ahora eres ${data.nivelInfo.datosNivel.nombre} ${data.nivelInfo.datosNivel.icono}`,
+          icono: data.nivelInfo.datosNivel.icono
+        }, { type: 'milestone' });
+      } else {
+        // Mostrar feedback específico por nivel
+        const levelMessages = {
+          1: 'updated', // General
+          2: 'updated',
+          3: 'skills_added', // Específico para habilidades
+          4: 'updated'
+        };
+        
+        showProfileActionFeedback(levelMessages[level] || 'updated');
+      }
+      
+      // Animar el nivel guardado
+      animateElement(`nivel-${level}`, 'animate-bounce-in');
+      
       setTimeout(() => setSaveStatus(prev => ({ ...prev, [level]: '' })), 2000);
     }
   } catch (error) {
@@ -233,7 +258,8 @@ const verificarInsigniaPerfilCompleto = async () => {
     console.log('🏆 Verificación de insignia:', data);
     
     if (data.success && data.perfilCompleto && data.insigniaObtenida && !data.insigniaYaObtenida) {
-      showNotification(`🎉 ¡FELICITACIONES! ${data.message} 🌟 Insignia: "${data.insignia.nombre}" ⭐ +${data.puntosGanados} puntos ¡Visita la sección de Insignias para verla!`, 6000);
+      // La notificación ahora se maneja en la página de Insignias con animaciones
+      // showNotification(`🎉 ¡FELICITACIONES! ${data.message} 🌟 Insignia: "${data.insignia.nombre}" ⭐ +${data.puntosGanados} puntos ¡Visita la sección de Insignias para verla!`, 6000);
       // Recargar el perfil para actualizar los puntos
       await fetchUserProfile();
     }
@@ -335,21 +361,16 @@ const verificarInsigniaPerfilCompleto = async () => {
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
-                <div>
-                  <div className="text-2xl font-bold text-purple-600">
-                    {userProfile?.cuenta?.puntos || 0}
-                  </div>
-                  <p className="text-sm text-gray-500">Puntos</p>
+              <div className="pt-4 border-t border-gray-200 text-center">
+                <div className="text-2xl font-bold text-purple-600">
+                  {userProfile?.cuenta?.puntos || 0}
                 </div>
-                <div>
-                  <div className="text-2xl font-bold text-purple-600">
-                    Nivel {userProfile?.cuenta?.nivel || 1}
-                  </div>
-                  <p className="text-sm text-gray-500">Nivel</p>
-                </div>
+                <p className="text-sm text-gray-500">Puntos Totales</p>
               </div>
             </div>
+
+            {/* Notificaciones Push */}
+            <PushNotifications cuentaId={userId} />
 
             {/* Progreso del Perfil */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
@@ -396,6 +417,8 @@ const verificarInsigniaPerfilCompleto = async () => {
                   onClick={() => {
                     setActiveLevel(level);
                     setEditMode(false);
+                    // Feedback al cambiar de nivel
+                    showSuccessFeedback(`Navegando a Nivel ${level}`, { duration: 1500 });
                   }}
                   className={`w-full flex items-center gap-3 p-4 rounded-xl text-left transition-all ${
                     activeLevel === level
@@ -436,7 +459,7 @@ const verificarInsigniaPerfilCompleto = async () => {
 
           {/* Columna Derecha - Contenido del Nivel */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <div id={`nivel-${activeLevel}`} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover-lift">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -458,8 +481,11 @@ const verificarInsigniaPerfilCompleto = async () => {
 
                 {!editMode ? (
                   <button
-                    onClick={() => setEditMode(true)}
-                    className="flex items-center gap-2 px-4 py-2 text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+                    onClick={() => {
+                      setEditMode(true);
+                      showProgressFeedback(`Modo edición activado para Nivel ${activeLevel}`, { duration: 2000 });
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors button-press hover-lift"
                   >
                     <Edit className="w-4 h-4" />
                     {getLevelStatus(activeLevel) ? 'Editar' : 'Completar'}
@@ -478,7 +504,7 @@ const verificarInsigniaPerfilCompleto = async () => {
                     <button
                       onClick={() => saveLevel(activeLevel)}
                       disabled={saveStatus[activeLevel] === 'saving'}
-                      className="flex items-center gap-2 px-4 py-2 text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
+                      className="flex items-center gap-2 px-4 py-2 text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 button-press hover-lift"
                     >
                       {saveStatus[activeLevel] === 'saving' ? (
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

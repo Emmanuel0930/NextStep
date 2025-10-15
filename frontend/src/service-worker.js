@@ -70,3 +70,75 @@ self.addEventListener('message', (event) => {
 });
 
 // Any other custom service worker logic can go here.
+
+// Manejo de notificaciones de racha
+self.addEventListener('notificationclick', (event) => {
+  console.log('Notificación clickeada:', event.notification);
+  
+  event.notification.close();
+  
+  // Abrir la aplicación cuando se hace clic en la notificación
+  event.waitUntil(
+    clients.matchAll().then((clientsList) => {
+      const client = clientsList.find(c => c.url.includes(self.location.origin));
+      
+      if (client) {
+        // Si ya está abierta, enfocarla
+        return client.focus();
+      } else {
+        // Si no está abierta, abrirla
+        return clients.openWindow('/');
+      }
+    })
+  );
+});
+
+// Escuchar mensajes para programar notificaciones
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  
+  if (event.data && event.data.type === 'SCHEDULE_STREAK_NOTIFICATION') {
+    const { racha, horaNotificacion } = event.data;
+    programarNotificacionRacha(racha, horaNotificacion);
+  }
+});
+
+// Función para programar notificaciones de racha
+function programarNotificacionRacha(racha, horaNotificacion) {
+  // Esta función se ejecutará cuando el backend programe notificaciones
+  // Por ahora, solo registramos el evento
+  console.log('Programando notificación de racha:', { racha, horaNotificacion });
+}
+
+// Mostrar notificación de racha personalizada
+function mostrarNotificacionRacha(rachaActual, mensaje) {
+  const opciones = {
+    body: mensaje || `¡Mantén tu racha de ${rachaActual} días! 🔥`,
+    icon: '/favicon.ico',
+    badge: '/favicon.ico',
+    tag: 'nextstep-streak',
+    requireInteraction: true,
+    vibrate: [200, 100, 200, 100, 200],
+    actions: [
+      {
+        action: 'abrir',
+        title: 'Abrir NextStep',
+        icon: '/favicon.ico'
+      },
+      {
+        action: 'recordar',
+        title: 'Recordar después',
+        icon: '/favicon.ico'
+      }
+    ],
+    data: {
+      url: '/',
+      racha: rachaActual,
+      timestamp: Date.now()
+    }
+  };
+
+  return self.registration.showNotification('🔥 NextStep - ¡Mantén tu racha!', opciones);
+}

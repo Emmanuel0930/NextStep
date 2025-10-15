@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNotification } from "../components/NotificationProvider";
+import { useFeedback } from "../components/FeedbackProvider";
 import { useNavigate } from "react-router-dom";
 import { login } from "../services/api";
 
 export default function Login() {
   const navigate = useNavigate();
   const { showNotification } = useNotification();
+  const { showStreakFeedback } = useFeedback();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -45,6 +47,14 @@ export default function Login() {
       const response = await login(email, password);
       if (response.success) {
         showNotification("¡Bienvenid@ a NextStep! 🎉");
+        
+        // Mostrar feedback de racha si está disponible
+        if (response.racha) {
+          setTimeout(() => {
+            showStreakFeedback(response.racha);
+          }, 1000); // Esperar un poco para que se vea la notificación de bienvenida
+        }
+        
         // Obtener empleos y mostrar uno aleatorio
         try {
           const jobs = await import("../services/api").then(mod => mod.getJobs());
