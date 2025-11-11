@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   User, Briefcase, FileText, Languages, Save, CheckCircle, 
-  Award, Edit, X, MapPin, DollarSign, GraduationCap, 
+  Award, Edit, MapPin, DollarSign, GraduationCap, 
   Clock, Plus, Trash2 
 } from 'lucide-react';
 

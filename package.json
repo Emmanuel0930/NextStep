@@ -9,7 +9,12 @@
     "install-backend": "cd backend && npm install",
     "frontend": "cd frontend && npm start",
     "backend": "cd backend && node server.js",
-    "dev": "concurrently -n backend,frontend -c blue,green \"npm run backend\" \"npm run frontend\""
+    "dev": "concurrently -n backend,frontend -c blue,green \"npm run backend\" \"npm run frontend\"",
+    "build": "cd frontend && npm run build",
+    "prod": "concurrently -n backend,frontend -c blue,green \"npm run backend\" \"cd frontend/build && npx serve -s . -l 3000\"",
+    "tunnel-front": "npx localtunnel --port 3000 --subdomain nextstep-front",
+    "tunnel-back": "npx localtunnel --port 5000 --subdomain nextstep-back",
+    "tunnel": "concurrently -n tunnel-back,tunnel-front -c magenta,cyan \"npm run tunnel-back\" \"npm run tunnel-front\""
   },
   "repository": {
     "type": "git",
