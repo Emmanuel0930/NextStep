@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   User, Briefcase, FileText, Languages, Save, CheckCircle, 
   Award, Edit, X, MapPin, DollarSign, GraduationCap, 
-  Clock, Plus, Trash2 
+  Clock, Plus, Trash2, Heart 
 } from 'lucide-react';
 
 import { useNotification } from "../components/NotificationProvider";
@@ -12,6 +12,8 @@ export default function Perfil() {
   const [activeLevel, setActiveLevel] = useState(1);
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState(null);
+  const [favoritos, setFavoritos] = useState([]);
+  const [showAllFavoritos, setShowAllFavoritos] = useState(false);
   const [formData, setFormData] = useState({});
   const [saveStatus, setSaveStatus] = useState({});
   const [editMode, setEditMode] = useState(false);
@@ -30,6 +32,16 @@ export default function Perfil() {
       if (data.success) {
         setUserProfile(data.perfil);
         initializeFormData(data.perfil.niveles);
+        // Obtener favoritos del usuario
+        try {
+          const favResp = await fetch(`http://localhost:5000/api/perfil/${userId}/favoritos`);
+          const favData = await favResp.json();
+          if (favData && favData.success) {
+            setFavoritos(favData.favoritos || []);
+          }
+        } catch (err) {
+          console.error('Error cargando favoritos:', err);
+        }
       }
     } catch (error) {
       console.error('Error cargando perfil:', error);
@@ -1019,6 +1031,49 @@ const verificarInsigniaPerfilCompleto = async () => {
                     </p>
                   </div>
                 </div>
+              )}
+            </div>
+
+            {/* Favoritos */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mt-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Heart className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Favoritos</h3>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-500">Empleos guardados</p>
+              </div>
+              {favoritos && favoritos.length > 0 ? (
+                <div className="space-y-3">
+                  {(
+                    showAllFavoritos ? favoritos : favoritos.slice(0, 10)
+                  ).map((job) => (
+                    <a key={job.id} href={`/jobs?jobId=${job.id}`} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 border border-gray-100">
+                      <div>
+                        <div className="font-medium text-gray-800">{job.nombre}</div>
+                        <div className="text-sm text-gray-500">{job.empresa || job.ciudad}</div>
+                      </div>
+                      <div className="text-sm text-purple-600">Ver</div>
+                    </a>
+                  ))}
+
+                  {favoritos.length > 10 && (
+                    <div className="text-center mt-2">
+                      <button
+                        onClick={() => setShowAllFavoritos(s => !s)}
+                        className="text-sm text-purple-600 hover:underline"
+                      >
+                        {showAllFavoritos ? 'Ver menos' : 'Ver más'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center text-gray-500 py-6">No tienes empleos favoritos guardados.</div>
               )}
             </div>
           </div>

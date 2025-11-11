@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Empleos = require('../../datos/modelos/Empleos');
+const InteraccionEmpleosCuenta = require('../../datos/modelos/InteraccionEmpleosCuenta');
 
 // Obtener todos los empleos
 router.get('/jobs', async (req, res) => {
@@ -83,6 +84,30 @@ router.get('/jobs/:id', async (req, res) => {
       error: "Error obteniendo empleo",
       mensaje: error.message 
     });
+  }
+});
+
+// Marcar o desmarcar favorito para un empleo por un usuario
+router.post('/jobs/:id/favorito', async (req, res) => {
+  try {
+    const empleoId = req.params.id;
+    const { cuentaId, favorito } = req.body;
+
+    if (!cuentaId) {
+      return res.status(400).json({ success: false, message: 'Falta cuentaId en el cuerpo' });
+    }
+
+    // Buscar interacción existente y actualizar o crear
+    const interaccion = await InteraccionEmpleosCuenta.findOneAndUpdate(
+      { cuentaId, empleoId },
+      { $set: { favorito: !!favorito, estado: 'guardado' } },
+      { upsert: true, new: true }
+    );
+
+    res.json({ success: true, message: favorito ? 'Empleo marcado como favorito' : 'Empleo desmarcado como favorito', interaccion });
+  } catch (error) {
+    console.error('Error marcando favorito:', error);
+    res.status(500).json({ success: false, message: 'Error marcando favorito', error: error.message });
   }
 });
 

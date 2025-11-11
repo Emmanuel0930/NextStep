@@ -110,6 +110,34 @@ export const getJobById = async (id) => {
 };
 
 /**
+ * Marcar o desmarcar favorito para un empleo por un usuario
+ * @param {string} empleoId
+ * @param {string} cuentaId
+ * @param {boolean} favorito
+ */
+export const toggleFavorite = async (empleoId, cuentaId, favorito) => {
+  try {
+    const response = await api.post(`/jobs/${empleoId}/favorito`, { cuentaId, favorito });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Obtener empleos favoritos de un usuario
+ * @param {string} cuentaId
+ */
+export const getFavorites = async (cuentaId) => {
+  try {
+    const response = await api.get(`/perfil/${cuentaId}/favoritos`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
  * Buscar empleos por query
  * @param {string} query - Término de búsqueda
  * @returns {Promise<Array>} Lista de empleos filtrados

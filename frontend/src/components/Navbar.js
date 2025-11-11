@@ -140,7 +140,9 @@ export function NotificationBell() {
   // Filtrar para ocultar la notificación de bienvenida
   const filteredNotifications = notifications.filter(
     n => n.message !== "¡Bienvenid@ a NextStep! 🎉" &&
-       n.message !== "Sesión cerrada correctamente"
+         n.message !== "Empleo marcado como favorito" &&
+         n.message !== "Empleo desmarcado como favorito" &&
+         n.message !== "Sesión cerrada correctamente"
   );
 
   // Si la notificación tiene data.jobId, navegar al detalle de ese empleo
