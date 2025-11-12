@@ -20,6 +20,10 @@ const InteraccionEmpleosCuenta = new mongoose.Schema({
     type: Boolean, 
     default: false 
   },
+  // Fecha en la que se envió el último recordatorio para este favorito
+  lastReminderSent: { 
+    type: Date
+  },
   comentario: String,
   calificacion: { 
     type: Number, 
@@ -30,6 +34,8 @@ const InteraccionEmpleosCuenta = new mongoose.Schema({
     type: Date, 
     default: Date.now 
   }
+}, {
+  timestamps: true
 });
 
 module.exports = mongoose.model('InteraccionEmpleosCuenta', InteraccionEmpleosCuenta);

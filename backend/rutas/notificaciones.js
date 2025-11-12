@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Racha = require('../../datos/modelos/Racha');
 const Cuenta = require('../../datos/modelos/Cuenta');
+const InteraccionEmpleosCuenta = require('../../datos/modelos/InteraccionEmpleosCuenta');
+const Empleos = require('../../datos/modelos/Empleos');
 
 // Sistema simple de notificaciones (para usar con cron job o similar)
 class NotificacionesRacha {
@@ -19,11 +21,86 @@ class NotificacionesRacha {
       this.verificarNotificaciones();
     }, 60000); // 60 segundos
     
+    // Verificar recordatorios de favoritos cada minuto
+    setInterval(() => {
+      this.verificarRecordatoriosFavoritos();
+    }, 60000); // 60 segundos
+    
     // Limpiar notificaciones enviadas cada día
     setInterval(() => {
       this.notificacionesEnviadas.clear();
       console.log('🧹 Cache de notificaciones limpiado');
     }, 24 * 60 * 60 * 1000); // 24 horas
+  }
+
+  // Buscar interacciones marcadas como favorito que llevan >=24h sin postular
+  async verificarRecordatoriosFavoritos() {
+    try {
+      const ahora = new Date();
+      const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+      const interacciones = await InteraccionEmpleosCuenta.find({
+        favorito: true,
+        estado: { $ne: 'postulado' },
+        $and: [
+          {
+            $or: [
+              { createdAt: { $exists: true, $lte: cutoff } },
+              { fechaPostulacion: { $exists: true, $lte: cutoff } }
+            ]
+          }
+        ],
+        $or: [
+          { lastReminderSent: { $exists: false } },
+          { lastReminderSent: { $lte: cutoff } }
+        ]
+      }).populate('cuentaId', 'email nombreUsuario').populate('empleoId');
+
+      if (!interacciones || interacciones.length === 0) return;
+
+      for (const inter of interacciones) {
+        try {
+          await this.enviarNotificacionFavorito(inter);
+          inter.lastReminderSent = new Date();
+          await inter.save();
+        } catch (err) {
+          console.error('Error procesando recordatorio favorito:', err);
+        }
+      }
+    } catch (error) {
+      console.error('Error verificando recordatorios de favoritos:', error);
+    }
+  }
+
+  async enviarNotificacionFavorito(interaccion) {
+    try {
+      const usuario = interaccion.cuentaId;
+      const empleo = interaccion.empleoId || {};
+
+      const empleoNombre = empleo.nombre || empleo.title || 'la oferta';
+      const mensaje = {
+        titulo: '🔖 Recordatorio: oferta guardada',
+        cuerpo: `Hace 24 horas guardaste "${empleoNombre}". ¿Te interesa postular? Haz click para verla.`,
+        link: `/jobs?jobId=${empleo._id || ''}`,
+        tipo: 'recordatorio_favorito',
+        timestamp: new Date()
+      };
+
+      // Log / simulación de envío (en el futuro usar web-push o guardar en colección Notificacion)
+      console.log(`🔔 Enviando recordatorio favorito a ${usuario.nombreUsuario} (${usuario.email}): ${mensaje.titulo}`);
+
+      // Si existe un sistema de notificaciones en BD, aquí se podría guardar el registro.
+      // Por ahora se simula el envío retornando el objeto
+      return {
+        usuario: usuario.nombreUsuario,
+        email: usuario.email,
+        empleo: empleoNombre,
+        mensaje
+      };
+    } catch (error) {
+      console.error('Error enviando notificación de favorito:', error);
+      throw error;
+    }
   }
 
   async verificarNotificaciones() {
@@ -266,5 +343,16 @@ router.post('/sistema/:accion', (req, res) => {
 
 // Iniciar automáticamente el sistema de notificaciones
 sistemaNotificaciones.iniciar();
+
+// Endpoint para ejecutar verificación de recordatorios de favoritos manualmente
+router.post('/enviar-recordatorios-favoritos', async (req, res) => {
+  try {
+    await sistemaNotificaciones.verificarRecordatoriosFavoritos();
+    res.json({ success: true, message: 'Verificación de recordatorios de favoritos ejecutada' });
+  } catch (error) {
+    console.error('Error ejecutando verificación manual de recordatorios de favoritos:', error);
+    res.status(500).json({ success: false, message: 'Error ejecutando verificación' });
+  }
+});
 
 module.exports = router;
