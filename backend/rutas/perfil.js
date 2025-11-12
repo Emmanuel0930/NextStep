@@ -15,6 +15,8 @@ router.get('/perfil/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
 
+    console.log(`GET /api/perfil/ llamado para usuario: ${userId}`);
+
     const cuenta = await Cuenta.findById(userId);
     if (!cuenta) {
       return res.status(404).json({
@@ -32,6 +34,36 @@ router.get('/perfil/:userId', async (req, res) => {
       Ingresos.find({ cuentaId: userId }).sort({ fecha: -1 }).limit(10),
       Insignias.find({ cuentaId: userId })
     ]);
+
+    // Si el usuario tiene postulaciones y no tiene la insignia 'Primera Postulación', crearla (retroactivo)
+    try {
+      const postulacionesCount = await InteraccionEmpleosCuenta.countDocuments({ cuentaId: userId, estado: 'postulado' });
+      if (postulacionesCount >= 1) {
+        const tienePrimera = insignias.some(i => (i.nombre || '').toLowerCase().includes('primera'));
+        if (!tienePrimera) {
+          // Usar upsert para evitar error de índice único existente en la colección
+          const updated = await Insignias.findOneAndUpdate(
+            { cuentaId: userId, nombre: 'Primera Postulación' },
+            {
+              $set: {
+                obtenida: true,
+                notificacionEnviada: true,
+                fechaObtenida: new Date()
+              },
+              $setOnInsert: {
+                descripcion: 'Envía tu primera postulación a una oferta',
+                icono: '🚀'
+              }
+            },
+            { upsert: true, new: true }
+          );
+          insignias.push(updated);
+          console.log(`Perfil: Insignia 'Primera Postulación' creada/actualizada retroactivamente para ${userId}`);
+        }
+      }
+    } catch (err) {
+      console.error('Error verificando postulaciones en /perfil:', err);
+    }
 
     // Calcular progreso total
     const nivelesCompletados = [nivel1, nivel2, nivel3, nivel4].filter(n => n?.completado).length;
@@ -53,7 +85,7 @@ router.get('/perfil/:userId', async (req, res) => {
           nivel4: nivel4 || { completado: false }
         },
         ingresos,
-        insignias,
+  insignias,
         progresoTotal: {
           nivelesCompletados,
           porcentajePerfil,

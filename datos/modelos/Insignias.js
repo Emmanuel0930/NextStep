@@ -22,6 +22,10 @@ const InsigniasSchema = new mongoose.Schema({
     type: Boolean, 
     default: false 
   },
+  notificacionEnviada: {
+    type: Boolean,
+    default: false
+  },
   fechaObtenida: {
     type: Date
   }
@@ -30,6 +34,8 @@ const InsigniasSchema = new mongoose.Schema({
 });
 
 
-InsigniasSchema.index({ cuentaId: 1 }, { unique: true });
+// Asegurarnos de que una misma cuenta no tenga duplicadas dos veces la MISMA insignia
+// (una por tipo de insignia). Índice compuesto único por cuentaId + nombre.
+InsigniasSchema.index({ cuentaId: 1, nombre: 1 }, { unique: true });
 
 module.exports = mongoose.model('Insignias', InsigniasSchema);

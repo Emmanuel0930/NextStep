@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNotification } from "../components/NotificationProvider";
 import { useFeedback } from "../components/FeedbackProvider";
-import { Award, Lock, Star, Calendar, CheckCircle, RefreshCw } from 'lucide-react';
+import { Award, Star, RefreshCw } from 'lucide-react';
+import BadgePanel from '../components/BadgePanel';
+import { getBadgeTemplates } from '../utils/badgeFactory';
 
 export default function Insignias() {
   const [insignia, setInsignia] = useState(null);
@@ -12,10 +14,14 @@ export default function Insignias() {
   const { celebrateAchievement, showSuccessFeedback, animateElement } = useFeedback();
 
   const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+  const templates = getBadgeTemplates();
+  const totalBadges = templates.length;
+  const [obtainedCount, setObtainedCount] = useState(0);
 
   useEffect(() => {
     if (userId) {
       fetchInsignia();
+      fetchBadgeCounts();
       // Verificar si el perfil está completo
       verificarPerfilCompleto();
     } else {
@@ -47,6 +53,23 @@ export default function Insignias() {
       setError(`Error de conexión: ${error.message}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchBadgeCounts = async () => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/perfil/${userId}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (data.success && data.perfil && Array.isArray(data.perfil.insignias)) {
+        const count = data.perfil.insignias.filter(i => i && i.obtenida).length;
+        setObtainedCount(count);
+      } else {
+        setObtainedCount(0);
+      }
+    } catch (err) {
+      console.error('Error cargando conteo de insignias:', err);
+      setObtainedCount(0);
     }
   };
 
@@ -187,7 +210,7 @@ export default function Insignias() {
             <div>
               <h2 className="text-2xl font-bold text-gray-800 mb-2">Tu Progreso</h2>
               <p className="text-gray-600">
-                {insignia?.obtenida ? '1 insignia obtenida' : '0 insignias obtenidas'}
+                {obtainedCount} {obtainedCount === 1 ? 'insignia obtenida' : 'insignias obtenidas'}
               </p>
               {/* Información adicional */}
               {!insignia?.obtenida && (
@@ -199,7 +222,7 @@ export default function Insignias() {
             <div className="text-center">
               <div className="w-24 h-24 bg-gradient-to-br from-purple-600 to-purple-700 rounded-full flex items-center justify-center mb-2">
                 <span className="text-3xl font-bold text-white">
-                  {insignia?.obtenida ? '1' : '0'}/1
+                  {obtainedCount}/{totalBadges}
                 </span>
               </div>
               <p className="text-sm text-gray-500">Completado</p>
@@ -207,20 +230,10 @@ export default function Insignias() {
           </div>
         </div>
 
-        {/* Insignia Principal */}
-        <div className="mb-8">
-          <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-            {insignia?.obtenida ? (
-              <CheckCircle className="w-6 h-6 text-green-600 mr-2" />
-            ) : (
-              <Lock className="w-6 h-6 text-gray-400 mr-2" />
-            )}
-            {insignia?.obtenida ? 'Insignia Obtenida' : 'Insignia Pendiente'}
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InsigniaCard insignia={insignia} obtenida={insignia?.obtenida} />
-          </div>
-        </div>
+        
+
+        {/* Panel de Insignias: colección completa (desbloqueadas y pendientes) */}
+        <BadgePanel />
 
         {/* Mensaje Motivacional */}
         {!insignia?.obtenida && (
@@ -271,106 +284,4 @@ export default function Insignias() {
   );
 }
 
-// Componente de tarjeta de insignia
-function InsigniaCard({ insignia, obtenida }) {
-  if (!insignia) return null;
-
-  return (
-    <div
-      id="insignia-card"
-      className={`relative rounded-2xl p-6 shadow-lg transition-all duration-300 hover-lift ${
-        obtenida
-          ? 'bg-gradient-to-br from-yellow-50 to-amber-50 border-2 border-yellow-300 hover:shadow-xl hover:scale-105'
-          : 'bg-gray-50 border-2 border-gray-200 opacity-75'
-      }`}
-    >
-      {/* Badge de Estado */}
-      <div className="absolute top-4 right-4">
-        {obtenida ? (
-          <div className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
-            <CheckCircle className="w-3 h-3" />
-            Obtenida
-          </div>
-        ) : (
-          <div className="bg-gray-400 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
-            <Lock className="w-3 h-3" />
-            Bloqueada
-          </div>
-        )}
-      </div>
-
-      {/* Icono de la Insignia */}
-      <div
-        className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 ${
-          obtenida
-            ? 'bg-gradient-to-br from-yellow-400 to-amber-500 shadow-lg'
-            : 'bg-gray-300'
-        }`}
-      >
-        <span className="text-5xl">{obtenida ? insignia.icono : '🔒'}</span>
-      </div>
-
-      {/* Información */}
-      <div className="text-center">
-        <h4
-          className={`text-xl font-bold mb-2 ${
-            obtenida ? 'text-gray-800' : 'text-gray-500'
-          }`}
-        >
-          {insignia.nombre}
-        </h4>
-        <p
-          className={`text-sm mb-4 ${
-            obtenida ? 'text-gray-600' : 'text-gray-400'
-          }`}
-        >
-          {insignia.descripcion}
-        </p>
-
-        {/* Fecha de obtención */}
-        {obtenida && insignia.fechaObtenida && (
-          <div className="flex items-center justify-center text-xs text-gray-500 bg-white bg-opacity-50 rounded-lg px-3 py-2">
-            <Calendar className="w-4 h-4 mr-2" />
-            Obtenida el {new Date(insignia.fechaObtenida).toLocaleDateString('es-ES', {
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric'
-            })}
-          </div>
-        )}
-
-        {/* Requisitos si no está obtenida */}
-        {!obtenida && (
-          <div className="mt-4 bg-white bg-opacity-70 rounded-lg p-3">
-            <p className="text-xs text-gray-600 font-medium mb-2">
-              📋 Requisitos:
-            </p>
-            <ul className="text-xs text-gray-600 space-y-1 text-left">
-              <li className="flex items-start">
-                <span className="mr-2">•</span>
-                Completar Nivel 1 (Información Básica)
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2">•</span>
-                Completar Nivel 2 (Experiencia Laboral)
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2">•</span>
-                Completar Nivel 3 (Habilidades)
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2">•</span>
-                Completar Nivel 4 (Idiomas y Referencias)
-              </li>
-            </ul>
-          </div>
-        )}
-      </div>
-
-      {/* Efecto de brillo para insignias obtenidas */}
-      {obtenida && (
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-transparent via-white to-transparent opacity-20 pointer-events-none"></div>
-      )}
-    </div>
-  );
-}
+// Insignia principal removed: collection view now contains all badges

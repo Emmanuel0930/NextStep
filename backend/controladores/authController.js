@@ -2,6 +2,7 @@
 const Cuenta = require('../../datos/modelos/Cuenta');
 const Ingresos = require('../../datos/modelos/Ingresos');
 const Racha = require('../../datos/modelos/Racha');
+const Insignias = require('../../datos/modelos/Insignias');
 
 const authController = {
   // Login de usuario
@@ -78,6 +79,55 @@ const authController = {
           rachaAnterior,
           mensaje: obtenerMensajeRacha(racha.rachaActual, tipoEvento)
         };
+      }
+
+      // ---------------------------------------------------------
+      // Lógica para otorgar insignia por Racha de 5 días activos
+      // Si la racha actual alcanza 5 días, otorgar insignia '5 Días Activo'
+      // ---------------------------------------------------------
+      try {
+        if (racha.rachaActual >= 5) {
+          // Asegurar documento de insignia (upsert)
+          await Insignias.findOneAndUpdate(
+            { cuentaId: usuario._id, nombre: '5 Días Activo' },
+            { $setOnInsert: { descripcion: 'Has iniciado sesión 5 días consecutivos', icono: '🔥', notificacionEnviada: false } },
+            { upsert: true, new: true }
+          );
+
+          // Intentar marcar como obtenida SOLAMENTE si aún no lo está
+          const marcada = await Insignias.findOneAndUpdate(
+            { cuentaId: usuario._id, nombre: '5 Días Activo', obtenida: { $ne: true } },
+            { $set: { obtenida: true, fechaObtenida: new Date() } },
+            { new: true }
+          );
+
+          if (marcada) {
+            const BONUS_RACHA_5 = 50;
+            await Ingresos.create({ cuentaId: usuario._id, puntosGanados: BONUS_RACHA_5 });
+            const cuentaActualizada = await Cuenta.findByIdAndUpdate(usuario._id, { $inc: { puntos: BONUS_RACHA_5 } }, { new: true });
+
+            // Recalcular nivel si corresponde
+            const nuevoNivelData = require('../../datos/utils/nivelesSystem').calcularNivel(cuentaActualizada.puntos);
+            if (nuevoNivelData.nivel !== cuentaActualizada.nivel) {
+              await Cuenta.findByIdAndUpdate(usuario._id, { nivel: nuevoNivelData.nivel });
+            }
+
+            console.log(`🏅 Insignia '5 Días Activo' otorgada a ${usuario._id}`);
+          }
+
+          // Enviar notificación solo si no se habia enviado antes
+          const insigniaDoc = await Insignias.findOne({ cuentaId: usuario._id, nombre: '5 Días Activo' });
+          if (insigniaDoc && !insigniaDoc.notificacionEnviada) {
+            rachaInfo.insigniaOtorgada = {
+              nombre: insigniaDoc.nombre,
+              descripcion: insigniaDoc.descripcion,
+              icono: insigniaDoc.icono
+            };
+            await Insignias.findOneAndUpdate({ cuentaId: usuario._id, nombre: '5 Días Activo' }, { $set: { notificacionEnviada: true } });
+          }
+        }
+      } catch (err) {
+        console.error('Error otorgando insignia por racha:', err);
       }
 
       console.log('LOGIN EXITOSO para:', usuario.nombreUsuario, '- Racha:', racha.rachaActual);

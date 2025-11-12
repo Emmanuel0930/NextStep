@@ -8,6 +8,7 @@ const Nivel1 = require('../../datos/modelos/Nivel1');
 const Nivel2 = require('../../datos/modelos/Nivel2');
 const Nivel3 = require('../../datos/modelos/Nivel3');
 const Nivel4 = require('../../datos/modelos/Nivel4');
+const InteraccionEmpleosCuenta = require('../../datos/modelos/InteraccionEmpleosCuenta');
 
 //Verificar y otorgar insignia de perfil completado
 router.post('/verificar-perfil-completo', async (req, res) => {
@@ -55,8 +56,8 @@ router.post('/verificar-perfil-completo', async (req, res) => {
       });
     }
 
-    // Verificar si ya tiene la insignia
-    let insignia = await Insignias.findOne({ cuentaId });
+  // Verificar si ya tiene la insignia de Perfil Completo
+  let insignia = await Insignias.findOne({ cuentaId, nombre: 'Perfil Completo' });
 
     if (insignia && insignia.obtenida) {
       console.log(`Usuario ${cuentaId} ya tiene la insignia`);
@@ -128,17 +129,18 @@ router.get('/insignia/:cuentaId', async (req, res) => {
   try {
     const { cuentaId } = req.params;
 
-    // Buscar o crear insignia
-    let insignia = await Insignias.findOne({ cuentaId });
-
-    if (!insignia) {
-      // Crear insignia pendiente
-      insignia = new Insignias({
-        cuentaId,
-        obtenida: false
-      });
-      await insignia.save();
-    }
+    // Buscar o crear la insignia de 'Perfil Completo' usando upsert para evitar duplicate-key
+    let insignia = await Insignias.findOneAndUpdate(
+      { cuentaId, nombre: 'Perfil Completo' },
+      {
+        $setOnInsert: {
+          descripcion: '¡Has completado tu perfil al 100%!',
+          icono: '🌟',
+          obtenida: false
+        }
+      },
+      { upsert: true, new: true }
+    );
 
     res.json({
       success: true,
@@ -161,3 +163,73 @@ router.get('/insignia/:cuentaId', async (req, res) => {
 });
 
 module.exports = router;
+
+// -------------------------------------------------------------
+// Ruta de reparación: otorgar retroactivamente 'Primera Postulación'
+// Recorre todas las cuentas que tienen al menos una postulación y
+// crea/actualiza la insignia si aún no la tienen.
+// Úsala solo una vez (o cuando necesites reparar datos).
+// -------------------------------------------------------------
+router.post('/repair/primera-postulacion', async (req, res) => {
+  try {
+    // Obtener lista de cuentas con aplicaciones (estado 'postulado')
+    const cuentas = await InteraccionEmpleosCuenta.distinct('cuentaId', { estado: 'postulado' });
+
+    const resultados = [];
+
+    for (const cuentaId of cuentas) {
+      try {
+        const existente = await Insignias.findOne({ cuentaId, nombre: 'Primera Postulación' });
+        if (existente && existente.obtenida) {
+          resultados.push({ cuentaId, estado: 'ya_tenida' });
+          continue;
+        }
+
+        // Crear o actualizar insignia usando upsert para evitar error si hay índice único
+        await Insignias.findOneAndUpdate(
+          { cuentaId, nombre: 'Primera Postulación' },
+          {
+            $set: {
+              obtenida: true,
+              fechaObtenida: existente?.fechaObtenida || new Date()
+            },
+            $setOnInsert: {
+              descripcion: 'Envía tu primera postulación a una oferta',
+              icono: '🚀'
+            }
+          },
+          { upsert: true, new: true }
+        );
+
+        // Otorgar puntos solo si anteriormente no estaba obtenida
+        if (!existente || !existente.obtenida) {
+          const BONUS_PRIMERA = 10;
+          await Ingresos.create({ cuentaId, puntosGanados: BONUS_PRIMERA });
+          await Cuenta.findByIdAndUpdate(cuentaId, { $inc: { puntos: BONUS_PRIMERA } });
+        }
+
+        // Para reparación retroactiva, marcar que la notificación ya fue enviada
+        // así no se spamea la notificación en frontend por datos antiguos.
+        try {
+          const doc = await Insignias.findOne({ cuentaId, nombre: 'Primera Postulación' });
+          if (doc && !doc.notificacionEnviada) {
+            doc.notificacionEnviada = true;
+            await doc.save();
+          }
+        } catch (err) {
+          console.error('Error marcando notificacionEnviada en repair:', err);
+        }
+
+        resultados.push({ cuentaId, estado: 'otorgada' });
+      } catch (err) {
+        console.error('Error procesando cuenta en repair:', cuentaId, err);
+        resultados.push({ cuentaId, estado: 'error', error: err.message });
+      }
+    }
+
+    res.json({ success: true, procesadas: resultados.length, resultados });
+  } catch (error) {
+    console.error('Error en repair primera-postulacion:', error);
+    res.status(500).json({ success: false, message: 'Error en reparación de insignias' });
+  }
+});

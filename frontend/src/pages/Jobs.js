@@ -3,6 +3,7 @@ import { X, MapPin, DollarSign, Clock, User, CheckCircle, FileText } from "lucid
 import { getJobs } from "../services/api";
 import SearchComponent from "../components/Search";
 import { useNotification } from "../components/NotificationProvider";
+import { useFeedback } from "../components/FeedbackProvider";
 
 
 export default function Jobs() {
@@ -16,6 +17,7 @@ export default function Jobs() {
   const [showModal, setShowModal] = useState(false);
   const [activeFilters, setActiveFilters] = useState({});
   const { showNotification } = useNotification();
+  const { celebrateAchievement, showJobActionFeedback } = useFeedback();
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -157,7 +159,7 @@ export default function Jobs() {
     try {
       const userId = localStorage.getItem('userId');
       if (!userId) {
-        alert('Debes iniciar sesión para aplicar a este empleo');
+        showNotification('Debes iniciar sesión para aplicar a este empleo');
         return;
       }
 
@@ -175,14 +177,25 @@ export default function Jobs() {
       const data = await response.json();
 
       if (data.success) {
-        alert(data.message);
+        // Reemplazamos el alert por la UI existente (feedback/celebración)
+        showJobActionFeedback('applied', selectedJob?.nombre || 'empleo');
+
+        // Si el backend indicó que se otorgó una insignia, mostrar celebración
+        if (data.insigniaOtorgada) {
+          celebrateAchievement({
+            nombre: data.insigniaOtorgada.nombre,
+            descripcion: data.insigniaOtorgada.descripcion,
+            icono: data.insigniaOtorgada.icono
+          }, { type: 'achievement' });
+        }
+
         handleCloseModal();
       } else {
-        alert(data.message || 'Error al aplicar al empleo');
+        showNotification(data.message || 'Error al aplicar al empleo');
       }
     } catch (error) {
       console.error('Error aplicando al empleo:', error);
-      alert('Error al aplicar al empleo');
+      showNotification('Error al aplicar al empleo');
     }
   };
 
