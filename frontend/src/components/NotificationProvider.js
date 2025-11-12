@@ -53,6 +53,8 @@ export function NotificationProvider({ children }) {
   const unreadCount = notifications.filter(
     n => !n.read &&
       n.message !== "¡Bienvenid@ a NextStep! 🎉" &&
+      n.message !== "Empleo marcado como favorito" &&
+      n.message !== "Empleo desmarcado como favorito" &&
       n.message !== "Sesión cerrada correctamente"
   ).length;
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { X, MapPin, DollarSign, Clock, User, CheckCircle, FileText } from "lucide-react";
-import { getJobs } from "../services/api";
+import { X, MapPin, DollarSign, Clock, User, CheckCircle, FileText, Heart } from "lucide-react";
+import { getJobs, toggleFavorite, getFavorites } from "../services/api";
 import SearchComponent from "../components/Search";
 import { useNotification } from "../components/NotificationProvider";
 import { useFeedback } from "../components/FeedbackProvider";
@@ -15,6 +15,7 @@ export default function Jobs() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedJob, setSelectedJob] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [favorites, setFavorites] = useState(new Set());
   const [activeFilters, setActiveFilters] = useState({});
   const { showNotification } = useNotification();
   const { celebrateAchievement, showJobActionFeedback } = useFeedback();
@@ -36,6 +37,18 @@ export default function Jobs() {
         
         setJobs(jobsData);
         setFilteredJobs(jobsData);
+        // Si hay usuario logueado, obtener favoritos
+        try {
+          const userId = localStorage.getItem('userId');
+          if (userId) {
+            const favResp = await getFavorites(userId);
+            if (favResp && favResp.favoritos) {
+              setFavorites(new Set(favResp.favoritos.map(j => String(j.id))));
+            }
+          }
+        } catch (err) {
+          console.error('No se pudieron cargar los favoritos:', err);
+        }
         
       } catch (error) {
         console.error('Error al cargar empleos:', error);
@@ -199,6 +212,29 @@ export default function Jobs() {
     }
   };
 
+  const handleToggleFavorite = async (jobId, e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    try {
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        alert('Debes iniciar sesión para guardar favoritos');
+        return;
+      }
+
+      const isFav = favorites.has(String(jobId));
+      const resp = await toggleFavorite(jobId, userId, !isFav);
+      if (resp && resp.success) {
+        const newSet = new Set(favorites);
+        if (!isFav) newSet.add(String(jobId)); else newSet.delete(String(jobId));
+        setFavorites(newSet);
+        showNotification(resp.message || (isFav ? 'Favorito eliminado' : 'Favorito agregado'));
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      alert('Error guardando favorito');
+    }
+  };
+
   const handleRetry = async () => {
     try {
       setLoading(true);
@@ -281,6 +317,15 @@ export default function Jobs() {
                     <MapPin className="w-5 h-5 mr-2" />
                     <span>{selectedJob.ciudad}</span>
                   </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={(e) => handleToggleFavorite(selectedJob.id, e)}
+                    className="flex items-center gap-2 px-3 py-2 border rounded-lg"
+                  >
+                    <Heart className={`w-5 h-5 ${favorites.has(String(selectedJob.id)) ? 'text-red-500' : 'text-gray-400'}`} />
+                    <span className="text-sm">{favorites.has(String(selectedJob.id)) ? 'Favorito' : 'Guardar'}</span>
+                  </button>
                 </div>
                 <button
                   onClick={handleCloseModal}
@@ -440,8 +485,15 @@ export default function Jobs() {
             <div
               key={job.id}
               onClick={() => handleJobClick(job)}
-              className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 cursor-pointer hover:shadow-lg hover:border-purple-200 transition-all flex flex-col justify-between"
+              className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 cursor-pointer hover:shadow-lg hover:border-purple-200 transition-all flex flex-col justify-between relative"
             >
+              <button
+                onClick={(e) => handleToggleFavorite(job.id, e)}
+                className="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-100"
+                aria-label="Favorito"
+              >
+                <Heart className={`w-5 h-5 ${favorites.has(String(job.id)) ? 'text-red-500' : 'text-gray-300'}`} />
+              </button>
               <div>
                 <h3 className="text-xl font-bold text-gray-800 mb-3 line-clamp-2">
                   {job.nombre}

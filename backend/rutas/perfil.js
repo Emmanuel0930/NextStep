@@ -9,6 +9,7 @@ const Ingresos = require('../../datos/modelos/Ingresos');
 const Insignias = require('../../datos/modelos/Insignias');
 const InteraccionEmpleosCuenta = require('../../datos/modelos/InteraccionEmpleosCuenta');
 const mongoose = require('mongoose');
+const Empleos = require('../../datos/modelos/Empleos');
 
 // Obtener perfil completo del usuario
 router.get('/perfil/:userId', async (req, res) => {
@@ -390,3 +391,35 @@ router.get('/stats/:userId', async (req, res) => {
 });
 
 module.exports = router;
+
+// Obtener empleos favoritos de un usuario
+router.get('/perfil/:userId/favoritos', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Buscar interacciones marcadas como favorito
+    const favoritos = await InteraccionEmpleosCuenta.find({ cuentaId: userId, favorito: true }).populate('empleoId').lean();
+
+    const empleosFavoritos = favoritos
+      .map(item => item.empleoId)
+      .filter(Boolean)
+      .map(empleo => ({
+        id: empleo._id.toString(),
+        nombre: empleo.nombre || empleo.title || '',
+        ciudad: empleo.ciudad || empleo.city || '',
+        sueldo: empleo.sueldo || empleo.salary || 0,
+        descripcion: empleo.descripcion || empleo.description || '',
+        palabrasClave: Array.isArray(empleo.palabrasClave) ? empleo.palabrasClave : Array.isArray(empleo.keywords) ? empleo.keywords : [],
+        habilidades: Array.isArray(empleo.habilidades) ? empleo.habilidades : Array.isArray(empleo.skills) ? empleo.skills : [],
+        añosExperiencia: empleo.añosExperiencia || empleo.experience || 0,
+        fechaPublicacion: empleo.fechaPublicacion || empleo.publishDate || new Date(),
+        ...(empleo.company && { empresa: empleo.company }),
+        ...(empleo.contract && { tipoContrato: empleo.contract })
+      }));
+
+    res.json({ success: true, favoritos: empleosFavoritos });
+  } catch (error) {
+    console.error('Error obteniendo favoritos:', error);
+    res.status(500).json({ success: false, message: 'Error al obtener favoritos' });
+  }
+});
