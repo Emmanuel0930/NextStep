@@ -39,6 +39,8 @@ npm run install-all
 
 
 ### 3. Levantar el proyecto
+
+#### Modo Desarrollo
 Para ver la aplicación funcionando (frontend y backend):
 
 Ejecuta este comando en la raíz del proyecto:
@@ -53,6 +55,28 @@ Esto iniciará:
 ```bash
 npm run install-all
 ```
+
+#### Modo Producción
+Para construir y ejecutar en producción:
+
+1. **Build del frontend**:
+```bash
+npm run build
+```
+
+2. **Ejecutar en producción**:
+```bash
+npm run start-prod
+```
+Esto servirá la aplicación en producción con el backend en el puerto 5000.
+
+#### Túnel Cloudflare para acceso externo
+Para exponer la aplicación a internet (útil para pruebas en dispositivos móviles):
+
+```bash
+npm run tunnel
+```
+Este comando creará un túnel público usando Cloudflare que te permitirá acceder a la aplicación desde cualquier dispositivo.
 
 ---
 
@@ -69,4 +93,6 @@ Si ves errores de carga, verifica que el backend esté corriendo correctamente e
 
 ## 📝 Notas
 - **No se suben las carpetas `node_modules`** al repo (usar `npm run install-all` después de clonar).  
-- Los scripts definidos en la raíz (`package.json`) facilitan el manejo de todo el proyecto.  
+- Los scripts definidos en la raíz (`package.json`) facilitan el manejo de todo el proyecto.
+- Para **producción**, primero ejecuta `npm run build` y luego `npm run start-prod`.
+- El comando `npm run tunnel` requiere tener instalado Cloudflare Tunnel (cloudflared).  
