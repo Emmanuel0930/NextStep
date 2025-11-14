@@ -60,3 +60,6 @@ jspm_packages/
 # Temporary files
 tmp/
 temp/
+
+# Build folder
+frontend/build/

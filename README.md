@@ -67,7 +67,9 @@ npm run install-all
 (O puedes hacerlo por separado: `npm run install-frontend` o `npm run install-backend`).
 
 
+
 ### 4. Levantar el proyecto
+
 Para ver la aplicación funcionando (frontend y backend):
 
 Ejecuta este comando en la raíz del proyecto:
@@ -82,6 +84,28 @@ Esto iniciará:
 ```bash
 npm run install-all
 ```
+
+#### Modo Producción
+Para construir y ejecutar en producción:
+
+1. **Build del frontend**:
+```bash
+npm run build
+```
+
+2. **Ejecutar en producción**:
+```bash
+npm run start-prod
+```
+Esto servirá la aplicación en producción con el backend en el puerto 5000.
+
+#### Túnel Cloudflare para acceso externo
+Para exponer la aplicación a internet (útil para pruebas en dispositivos móviles):
+
+```bash
+npm run tunnel
+```
+Este comando creará un túnel público usando Cloudflare que te permitirá acceder a la aplicación desde cualquier dispositivo.
 
 ---
 
@@ -113,4 +137,7 @@ Si ves errores de carga, verifica que el backend esté corriendo correctamente e
 - **No se suben las carpetas `node_modules`** al repo (usar `npm run install-all` después de clonar).  
 - **No se sube el archivo `.env`** por seguridad - configurar según `.env.example`
 - Los scripts definidos en la raíz (`package.json`) facilitan el manejo de todo el proyecto.
+- Para **producción**, primero ejecuta `npm run build` y luego `npm run start-prod`.
+- El comando `npm run tunnel` requiere tener instalado Cloudflare Tunnel (cloudflared).  
 - **El chatbot requiere conexión a internet** para funcionar (API de Groq)
+

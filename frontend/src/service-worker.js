@@ -1,4 +1,5 @@
 /* eslint-disable no-restricted-globals */
+/* global clients */
 
 // This service worker can be customized!
 // See https://developers.google.com/web/tools/workbox/modules
@@ -57,6 +58,20 @@ registerRoute(
       // Ensure that once this runtime cache reaches a maximum size the
       // least-recently used images are removed.
       new ExpirationPlugin({ maxEntries: 50 }),
+    ],
+  })
+);
+
+// Cache API de empleos
+registerRoute(
+  ({ url }) => url.pathname.includes('/api/jobs'),
+  new StaleWhileRevalidate({
+    cacheName: 'jobs-api',
+    plugins: [
+      new ExpirationPlugin({ 
+        maxEntries: 50,
+        maxAgeSeconds: 24 * 60 * 60
+      }),
     ],
   })
 );

@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { 
   User, Briefcase, FileText, Languages, Save, CheckCircle, 
+<<<<<<< HEAD
   Award, Edit, X, MapPin, DollarSign, GraduationCap, 
   Clock, Plus, Trash2, Heart 
+=======
+  Award, Edit, MapPin, DollarSign, GraduationCap, 
+  Clock, Plus, Trash2 
+>>>>>>> offline-pwa
 } from 'lucide-react';
 
 import { useNotification } from "../components/NotificationProvider";
