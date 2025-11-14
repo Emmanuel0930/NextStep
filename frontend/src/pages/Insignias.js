@@ -135,7 +135,7 @@ export default function Insignias() {
             <Award className="w-12 h-12 mr-3" />
             <h1 className="text-3xl md:text-4xl font-bold">Mis Insignias</h1>
           </div>
-          <p className="text-purple-100 text-lg">
+          <p className="text-tertiaryBrand-purple50 text-lg">
             Completa desafíos y gana reconocimientos especiales
           </p>
           
@@ -187,7 +187,7 @@ export default function Insignias() {
                   icono: "🌟"
                 }, { type: 'milestone' });
               }}
-              className="bg-purple-500/20 text-white px-3 py-1 rounded-lg text-sm hover:bg-purple-500/30 transition-all button-press"
+              className="bg-purple-500/20 text-white px-3 py-1 rounded-lg text-sm hover:bg-purple-600/30 transition-all button-press"
             >
               🌟 Probar Hito
             </button>

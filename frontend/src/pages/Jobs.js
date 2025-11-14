@@ -292,9 +292,9 @@ export default function Jobs() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 flex flex-col justify-center items-center">
+      <div className="min-h-screen bg-gradient-to-br from-tertiaryBrand-purple50 to-tertiaryBrand-purple100 flex flex-col justify-center items-center">
         <div className="bg-white rounded-full p-4 shadow-lg mb-6">
-          <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+          <div className="w-12 h-12 border-4 border-tertiaryBrand-purple200 border-t-tertiaryBrand-purple400 rounded-full animate-spin"></div>
         </div>
         <h3 className="text-lg font-semibold text-gray-700 mb-2">NextStep</h3>
         <p className="text-gray-500">Cargando las mejores oportunidades...</p>
@@ -318,7 +318,7 @@ export default function Jobs() {
             </p>
             <button
               onClick={handleRetry}
-              className="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-purple-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl text-sm md:text-base"
+              className="w-full bg-tertiaryBrand-purple400 text-white py-3 px-6 rounded-xl font-semibold hover:bg-tertiaryBrand-purple300 transition-all duration-200 shadow-lg hover:shadow-xl text-sm md:text-base"
             >
               Reintentar
             </button>
@@ -345,13 +345,13 @@ export default function Jobs() {
       )}
 
       {reviewStats.revisadas > 0 && (
-        <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-3 text-center">
+        <div className="bg-gradient-to-r from-tertiaryBrand-green300 to-tertiaryBrand-green400 text-white px-4 py-2 text-center">
           <div className="flex items-center justify-center gap-3">
-            <Award className="w-5 h-5" />
-            <span className="font-semibold">
+            <Award className="w-4 h-4" />
+            <span className="font-semibold text-sm">
               {reviewStats.puntos} puntos hoy | {reviewStats.revisadas}/10 vacantes revisadas
             </span>
-            {reviewStats.limite && <span className="text-purple-200">(Límite alcanzado)</span>}
+            {reviewStats.limite && <span className="text-tertiaryBrand-green50 text-sm">(Límite alcanzado)</span>}
           </div>
         </div>
       )}
@@ -367,7 +367,7 @@ export default function Jobs() {
                     {selectedJob.nombre}
                   </h2>
                   {selectedJob.empresa && (
-                    <div className="flex items-center text-purple-600 font-medium mb-2">
+                    <div className="flex items-center text-tertiaryBrand-purple400 font-medium mb-2">
                       <span>🏢 {selectedJob.empresa}</span>
                     </div>
                   )}
@@ -395,32 +395,32 @@ export default function Jobs() {
 
               {/* Información principal */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div className="bg-purple-50 rounded-lg p-4">
-                  <div className="flex items-center text-purple-700 mb-2">
+                <div className="bg-tertiaryBrand-purple50 rounded-lg p-4">
+                  <div className="flex items-center text-tertiaryBrand-purple400 mb-2">
                     <DollarSign className="w-5 h-5 mr-2" />
                     <span className="font-semibold">Salario</span>
                   </div>
-                  <p className="text-xl font-bold text-purple-600">
+                  <p className="text-xl font-bold text-tertiaryBrand-purple400">
                     {formatSalary(selectedJob.sueldo)}
                   </p>
                 </div>
 
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <div className="flex items-center text-blue-700 mb-2">
+                <div className="bg-tertiaryB2B-50 rounded-lg p-4">
+                  <div className="flex items-center text-tertiaryB2B-500 mb-2">
                     <User className="w-5 h-5 mr-2" />
                     <span className="font-semibold">Experiencia</span>
                   </div>
-                  <p className="text-xl font-bold text-blue-600">
+                  <p className="text-xl font-bold text-tertiaryB2B-400">
                     {selectedJob.añosExperiencia || 0} {(selectedJob.añosExperiencia || 0) === 1 ? 'año' : 'años'}
                   </p>
                 </div>
 
-                <div className="bg-green-50 rounded-lg p-4">
-                  <div className="flex items-center text-green-700 mb-2">
+                <div className="bg-tertiaryBrand-green50 rounded-lg p-4">
+                  <div className="flex items-center text-tertiaryBrand-green500 mb-2">
                     <MapPin className="w-5 h-5 mr-2" />
                     <span className="font-semibold">Ubicación</span>
                   </div>
-                  <p className="text-xl font-bold text-green-600">
+                  <p className="text-xl font-bold text-tertiaryBrand-green400">
                     {selectedJob.ciudad}
                   </p>
                 </div>
@@ -485,7 +485,7 @@ export default function Jobs() {
                     {selectedJob.palabrasClave.map((palabra, index) => (
                       <span
                         key={index}
-                        className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm border border-purple-200"
+                        className="px-3 py-1 bg-tertiaryBrand-purple100 text-tertiaryBrand-purple400 rounded-full text-sm border border-tertiaryBrand-purple200"
                       >
                         #{palabra}
                       </span>
@@ -498,7 +498,7 @@ export default function Jobs() {
               <div className="flex gap-3 pt-4 border-t border-gray-200">
                 <button
                   onClick={() => handleAplicarClick(selectedJob.id)}
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 text-white py-3 px-6 rounded-xl font-semibold hover:from-purple-700 hover:to-purple-800 transition-all duration-200 shadow-lg hover:shadow-xl"
+                  className="flex-1 bg-tertiaryBrand-purple400 text-white py-3 px-6 rounded-xl font-semibold hover:bg-tertiaryBrand-purple300 transition-all duration-200 shadow-lg hover:shadow-xl"
                 >
                   Aplicar Ahora
                 </button>
@@ -530,9 +530,9 @@ export default function Jobs() {
           <div className="mb-6 text-center">
             <p className="text-gray-600">
               {searchQuery || Object.values(activeFilters).some(f => f !== '') ? (
-                <>Encontrados <span className="font-semibold text-purple-600">{filteredJobs.length}</span> empleos</>
+                <>Encontrados <span className="font-semibold text-tertiaryBrand-purple400">{filteredJobs.length}</span> empleos</>
               ) : (
-                <><span className="font-semibold text-purple-600">{filteredJobs.length}</span> empleos disponibles</>
+                <><span className="font-semibold text-tertiaryBrand-purple400">{filteredJobs.length}</span> empleos disponibles</>
               )}
             </p>
           </div>
@@ -543,7 +543,7 @@ export default function Jobs() {
             <div
               key={job.id}
               onClick={() => handleJobClick(job)}
-              className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 cursor-pointer hover:shadow-lg hover:border-purple-200 transition-all flex flex-col justify-between relative"
+              className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 cursor-pointer hover:shadow-lg hover:border-tertiaryBrand-purple200 transition-all flex flex-col justify-between"
             >
               <button
                 onClick={(e) => handleToggleFavorite(job.id, e)}
@@ -599,7 +599,7 @@ export default function Jobs() {
                     ? new Date(job.fechaPublicacion).toLocaleDateString('es-CO')
                     : 'Reciente'}
                 </span>
-                <span className="text-purple-600 text-sm font-medium group-hover:text-purple-700">
+                <span className="text-secondaryBrand-600 text-sm font-medium group-hover:text-secondaryBrand-500">
                   Ver detalles →
                 </span>
               </div>
@@ -623,7 +623,7 @@ export default function Jobs() {
                     setSearchQuery("");
                     setActiveFilters({});
                   }}
-                  className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                  className="bg-tertiaryBrand-purple400 text-white px-6 py-2 rounded-lg hover:bg-tertiaryBrand-purple300 transition-colors"
                 >
                   Ver todos los empleos
                 </button>
@@ -638,7 +638,7 @@ export default function Jobs() {
 
         {searchLoading && (
           <div className="text-center py-8">
-            <div className="w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="w-8 h-8 border-4 border-tertiaryBrand-purple200 border-t-tertiaryBrand-purple400 rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-gray-500">Buscando empleos...</p>
           </div>
         )}

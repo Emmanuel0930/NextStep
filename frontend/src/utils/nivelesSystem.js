@@ -165,12 +165,12 @@ export const getColorClasses = (color) => {
       ring: 'ring-orange-200'
     },
     purple: {
-      bg: 'bg-purple-500',
-      text: 'text-purple-600',
-      border: 'border-purple-300',
-      gradient: 'from-purple-400 to-purple-600',
-      light: 'bg-purple-50',
-      ring: 'ring-purple-200'
+      bg: 'bg-tertiaryBrand-purple400',
+      text: 'text-tertiaryBrand-purple400',
+      border: 'border-tertiaryBrand-purple200',
+      gradient: 'from-tertiaryBrand-purple400 to-secondaryBrand-500',
+      light: 'bg-tertiaryBrand-purple50',
+      ring: 'ring-tertiaryBrand-purple200'
     },
     indigo: {
       bg: 'bg-indigo-500',
@@ -205,12 +205,12 @@ export const getColorClasses = (color) => {
       ring: 'ring-red-200'
     },
     gradient: {
-      bg: 'bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500',
-      text: 'text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600',
-      border: 'border-purple-300',
-      gradient: 'from-purple-500 via-pink-500 to-yellow-500',
-      light: 'bg-gradient-to-r from-purple-50 via-pink-50 to-yellow-50',
-      ring: 'ring-purple-200'
+      bg: 'bg-gradient-to-r from-tertiaryBrand-purple400 via-secondaryBrand-500 to-tertiaryBrand-green400',
+      text: 'text-transparent bg-clip-text bg-gradient-to-r from-tertiaryBrand-purple400 via-secondaryBrand-500 to-tertiaryBrand-green400',
+      border: 'border-tertiaryBrand-purple200',
+      gradient: 'from-tertiaryBrand-purple400 via-secondaryBrand-500 to-tertiaryBrand-green400',
+      light: 'bg-gradient-to-r from-tertiaryBrand-purple50 via-secondaryBrand-50 to-tertiaryBrand-green50',
+      ring: 'ring-tertiaryBrand-purple200'
     }
   };
   

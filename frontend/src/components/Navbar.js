@@ -54,7 +54,7 @@ export default function Navbar() {
           <div className="relative">
             <button
               onClick={handleMenuClick}
-              className="w-8 h-8 flex items-center justify-center hover:bg-primaryBrand-50 rounded-lg transition-colors"
+              className="w-8 h-8 flex items-center justify-center hover:bg-neutral-100 rounded-lg transition-colors"
               id="menu-button"
             >
               <Menu className="w-5 h-5 text-primaryBrand-400" />
@@ -63,28 +63,28 @@ export default function Navbar() {
               <div className="absolute left-0 mt-2 w-48 bg-white border border-primaryBrand-200 rounded-lg shadow-lg z-10" id="menu-dropdown">
                 <button
                   onClick={handleDashboardClick}
-                  className="w-full text-left px-4 py-3 hover:bg-primaryBrand-50 text-primaryBrand-400 transition-colors flex items-center gap-2 rounded-t-lg"
+                  className="w-full text-left px-4 py-3 hover:bg-neutral-100 text-primaryBrand-400 transition-colors flex items-center gap-2 rounded-t-lg"
                 >
                   <Home className="w-4 h-4 text-tertiaryBrand-purple400" />
                   Dashboard
                 </button>
                 <button
                   onClick={handleJobsClick}
-                  className="w-full text-left px-4 py-3 hover:bg-primaryBrand-50 text-primaryBrand-400 transition-colors flex items-center gap-2"
+                  className="w-full text-left px-4 py-3 hover:bg-neutral-100 text-primaryBrand-400 transition-colors flex items-center gap-2"
                 >
                   <Briefcase className="w-4 h-4 text-secondaryBrand-500" />
                   Ver Empleos
                 </button>
                 <button
                   onClick={handlePerfilClick}
-                  className="w-full text-left px-4 py-3 hover:bg-primaryBrand-50 text-primaryBrand-400 transition-colors flex items-center gap-2"
+                  className="w-full text-left px-4 py-3 hover:bg-neutral-100 text-primaryBrand-400 transition-colors flex items-center gap-2"
                 >
                   <User className="w-4 h-4 text-tertiaryBrand-purple400" />
                   Perfil
                 </button>
                 <button
                   onClick={handleInsigniasClick} 
-                  className="w-full text-left px-4 py-3 hover:bg-primaryBrand-50 text-primaryBrand-400 transition-colors flex items-center gap-2"
+                  className="w-full text-left px-4 py-3 hover:bg-neutral-100 text-primaryBrand-400 transition-colors flex items-center gap-2"
                 >
                   <Award className="w-4 h-4 text-secondaryBrand-500" />
                   Insignias
@@ -106,21 +106,50 @@ export default function Navbar() {
             )}
           </div>
           
-          {/* Logo y título */}
-          <div className="flex items-center gap-2">
+          {/* Logo completo */}
+          <button 
+            onClick={handleHomeClick}
+            className="relative group"
+          >
+            {/* Imagen original */}
             <img 
-              src="/magneto.jpg" 
-              alt="Magneto" 
-              className="h-8 object-contain mt-1"
+              src="/logos.png" 
+              alt="NextStep" 
+              className="h-6 md:h-8 object-contain transition-opacity duration-200 group-hover:opacity-0"
             />
-            <span className="text-primaryBrand-300 font-bold text-xl">x</span>
-            <button 
-              onClick={handleHomeClick}
-              className="text-xl font-bold text-primaryBrand-400 hover:text-secondaryBrand-500 transition-colors"
-            >
-              NextStep
-            </button>
-          </div>
+            
+            {/* 47% izquierda verde en hover */}
+            <img 
+              src="/logos.png" 
+              alt="NextStep" 
+              className="h-6 md:h-8 object-contain absolute top-0 left-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+              style={{
+                filter: 'brightness(18%) saturate(100%) invert(32%) sepia(93%) saturate(1300%) hue-rotate(90deg) brightness(119%) contrast(119%)',
+                clipPath: 'inset(0 53% 0 0)'
+              }}
+            />
+            
+            {/* 6% centro sin cambio - imagen original visible */}
+            <img 
+              src="/logos.png" 
+              alt="NextStep" 
+              className="h-6 md:h-8 object-contain absolute top-0 left-0 transition-opacity duration-200 group-hover:opacity-100"
+              style={{
+                clipPath: 'inset(0 47% 0 47%)'
+              }}
+            />
+            
+            {/* 47% derecha morada en hover */}
+            <img 
+              src="/logos.png" 
+              alt="NextStep" 
+              className="h-6 md:h-8 object-contain absolute top-0 left-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+              style={{
+                filter: 'brightness(0) saturate(100%) invert(20%) sepia(100%) saturate(3000%) hue-rotate(270deg) brightness(100%) contrast(120%)',
+                clipPath: 'inset(0 0 0 53%)'
+              }}
+            />
+          </button>
         </div>
 
         {/* Derecha: Información del usuario y Notificaciones */}

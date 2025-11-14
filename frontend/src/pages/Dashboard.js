@@ -341,7 +341,7 @@ export default function Dashboard() {
             </div>
             <div className="w-full bg-tertiaryBrand-purple100 rounded h-1.5">
               <div 
-                className="h-1.5 rounded bg-gradient-to-r from-secondaryBrand-500 to-tertiaryBrand-purple400 transition-all duration-500"
+                className="h-1.5 rounded bg-gradient-to-r from-purple-500 to-purple-600 transition-all duration-500"
                 style={{ width: `${porcentajeProgreso}%` }}
               />
             </div>
@@ -368,7 +368,7 @@ export default function Dashboard() {
               onClick={() => setActiveTab(tab.name)}
               className={`px-6 py-2 md:px-8 md:py-3 rounded-full text-sm md:text-base font-semibold transition-all duration-200 ${
                 tab.name === activeTab
-                  ? 'bg-gradient-to-r from-primaryBrand-400 to-tertiaryBrand-purple400 text-white shadow-lg'
+                  ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg'
                   : 'bg-tertiaryBrand-purple50 text-primaryBrand-400 hover:bg-tertiaryBrand-purple100'
               }`}
             >
@@ -389,7 +389,7 @@ export default function Dashboard() {
             <div className="lg:col-span-2 space-y-6">
               <div className="bg-gradient-to-br from-white to-tertiaryBrand-purple50 rounded-2xl p-6 shadow-sm border border-primaryBrand-100 z-10 relative">
                 <h2 className="text-xl font-semibold text-primaryBrand-400 mb-3">Puntos</h2>
-                <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primaryBrand-400 via-tertiaryBrand-purple400 to-secondaryBrand-500 bg-clip-text text-transparent mb-2">
+                <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 to-purple-700 bg-clip-text text-transparent mb-2">
                   {points}{nextLevelInfo ? `/${maxPoints}` : ''}
                 </div>
                 <p className="text-tertiaryBrand-purple300 text-base">
@@ -400,7 +400,7 @@ export default function Dashboard() {
               </div>
 
               {/* Nuevo sistema de niveles */}
-              <div className="bg-gradient-to-br from-tertiaryBrand-green50 to-tertiaryBrand-purple100 rounded-2xl p-6 shadow-sm border border-tertiaryBrand-green300 z-10 relative">
+              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-6 shadow-sm border border-green-200 z-10 relative">
                 <NivelDisplay puntos={points} showProgress={true} size="normal" />
               </div>
 
@@ -510,10 +510,10 @@ export default function Dashboard() {
               </div>
 
               {/* Card de Racha para escritorio */}
-              <div className="hidden lg:block bg-gradient-to-br from-primaryBrand-400 via-primaryBrand-300 to-secondaryBrand-500 rounded-2xl p-6 text-white relative overflow-hidden z-10">
+              <div className="hidden lg:block bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl p-6 text-white relative overflow-hidden z-10">
                 <div className="relative z-10 pr-20">
                   <h3 className="text-lg font-bold mb-2">Tu Racha Diaria 🔥</h3>
-                  <p className="text-primaryBrand-50 text-sm">
+                  <p className="text-purple-100 text-sm">
                     {rachaData ? (
                       rachaData.rachaActual > 0 
                         ? `¡${rachaData.rachaActual} días consecutivos!`
@@ -521,20 +521,20 @@ export default function Dashboard() {
                     ) : 'Cargando racha...'}
                   </p>
                   {rachaData?.mejorRacha > 0 && (
-                    <p className="text-primaryBrand-100 text-xs mt-1">
+                    <p className="text-purple-200 text-xs mt-1">
                       Mejor racha: {rachaData.mejorRacha} días
                     </p>
                   )}
                 </div>
                 <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                  <div className="w-16 h-16 rounded-full bg-secondaryBrand-400 flex items-center justify-center shadow-lg border-2 border-primaryBrand-100">
-                    <div className="w-12 h-12 rounded-full bg-secondaryBrand-500 flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-full bg-white bg-opacity-20 flex items-center justify-center shadow-lg">
+                    <div className="w-12 h-12 rounded-full bg-white bg-opacity-30 flex items-center justify-center">
                       <span className="text-2xl">🔥</span>
                     </div>
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-tertiaryBrand-green400 rounded-full border border-primaryBrand-100"></div>
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-purple-400 rounded-full border-2 border-white"></div>
                 </div>
-                <div className="absolute -left-4 -bottom-4 w-24 h-24 bg-primaryBrand-200 rounded-full opacity-50"></div>
+                <div className="absolute -left-4 -bottom-4 w-24 h-24 bg-purple-500 rounded-full opacity-30"></div>
               </div>
             </div>
           </div>
@@ -553,7 +553,7 @@ export default function Dashboard() {
             alt="Logo"
             className="w-[100px] h-[100px] object-contain pointer-events-none"
           />
-          <span className="absolute top-4 right-4 w-5 h-5 bg-gradient-to-r from-primaryBrand-400 to-secondaryBrand-500 rounded-full shadow-sm pointer-events-none flex items-center justify-center">
+          <span className="absolute top-4 right-4 w-5 h-5 bg-purple-600 rounded-full shadow-sm pointer-events-none flex items-center justify-center">
             <MessageSquare className="w-3 h-3 text-white" />
           </span>
         </div>

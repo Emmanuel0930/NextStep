@@ -81,11 +81,32 @@ export default function SearchComponent({
   };
 
   return (
-    <div className="bg-gradient-to-r from-purple-600 to-purple-700 pb-6">
-      <div className="px-4 pt-12 pb-4">
+    <div className="bg-gradient-to-r from-purple-600 to-purple-700 pb-6 relative overflow-hidden">
+      {/* Decoración de fondo - círculos y formas */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500 rounded-full opacity-20 -mr-48 -mt-48 blur-3xl"></div>
+      <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-800 rounded-full opacity-20 -ml-32 -mb-32 blur-2xl"></div>
+      <div className="absolute top-1/2 left-1/4 w-40 h-40 bg-white rounded-full opacity-10"></div>
+      <div className="absolute top-1/4 right-1/3 w-24 h-24 bg-purple-400 rounded-full opacity-15"></div>
+      
+      {/* Patrón de puntos decorativos */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute top-10 left-10 w-2 h-2 bg-white rounded-full"></div>
+        <div className="absolute top-20 right-20 w-2 h-2 bg-white rounded-full"></div>
+        <div className="absolute bottom-10 left-1/3 w-2 h-2 bg-white rounded-full"></div>
+        <div className="absolute top-1/3 right-1/4 w-2 h-2 bg-white rounded-full"></div>
+      </div>
+
+      <div className="px-4 pt-12 pb-4 relative z-10">
         <div className="max-w-6xl mx-auto text-center mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">NextStep</h1>
-          <p className="text-purple-100 text-sm md:text-base">Encuentra tu próxima oportunidad</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-white mb-2 drop-shadow-lg">NextStep</h1>
+          <p className="text-purple-100 text-sm md:text-base drop-shadow-sm">Encuentra tu próxima oportunidad</p>
+          
+          {/* Línea decorativa animada */}
+          <div className="mt-4 flex items-center justify-center gap-2">
+            <div className="w-12 h-0.5 bg-white opacity-30 rounded-full"></div>
+            <div className="w-2 h-2 bg-white opacity-50 rounded-full animate-pulse"></div>
+            <div className="w-12 h-0.5 bg-white opacity-30 rounded-full"></div>
+          </div>
         </div>
 
         <div className="max-w-6xl mx-auto">

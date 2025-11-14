@@ -378,7 +378,7 @@ const verificarInsigniaPerfilCompleto = async () => {
               </div>
               
               <div className="pt-4 border-t border-gray-200 text-center">
-                <div className="text-2xl font-bold text-purple-600">
+                <div className="text-2xl font-bold text-tertiaryBrand-purple400">
                   {userProfile?.cuenta?.puntos || 0}
                 </div>
                 <p className="text-sm text-gray-500">Puntos Totales</p>
@@ -390,7 +390,7 @@ const verificarInsigniaPerfilCompleto = async () => {
 
             {/* Progreso del Perfil */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-              <h3 className="text-lg font-semibold text-purple-600 mb-4">
+              <h3 className="text-lg font-semibold text-primaryBrand-300 mb-4">
                 Progreso del Perfil
               </h3>
               
@@ -398,7 +398,7 @@ const verificarInsigniaPerfilCompleto = async () => {
                 <div className="relative inline-block">
                   <div className="w-32 h-32 rounded-full flex items-center justify-center bg-gradient-to-br from-purple-600 to-purple-700">
                     <div className="w-28 h-28 bg-white rounded-full flex items-center justify-center">
-                      <span className="text-3xl font-bold text-purple-600">
+                      <span className="text-3xl font-bold text-tertiaryBrand-purple400">
                         {porcentajePerfil}%
                       </span>
                     </div>
@@ -409,7 +409,7 @@ const verificarInsigniaPerfilCompleto = async () => {
                 </p>
               </div>
 
-              <div className="w-full bg-purple-200 rounded-full h-3 mb-2">
+              <div className="w-full bg-tertiaryBrand-purple100 rounded-full h-3 mb-2">
                 <div 
                   className="bg-gradient-to-r from-purple-600 to-purple-700 h-3 rounded-full transition-all duration-300"
                   style={{ width: `${porcentajePerfil}%` }}
@@ -438,7 +438,7 @@ const verificarInsigniaPerfilCompleto = async () => {
                   }}
                   className={`w-full flex items-center gap-3 p-4 rounded-xl text-left transition-all ${
                     activeLevel === level
-                      ? 'bg-purple-600 text-white shadow-lg'
+                      ? 'bg-tertiaryBrand-purple400 text-white shadow-lg'
                       : getLevelStatus(level) === 'completed'
                       ? 'bg-green-50 text-green-700 border-2 border-green-200'
                       : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
@@ -449,13 +449,13 @@ const verificarInsigniaPerfilCompleto = async () => {
                       ? 'bg-white bg-opacity-20' 
                       : getLevelStatus(level) === 'completed'
                       ? 'bg-green-100'
-                      : 'bg-purple-100'
+                      : 'bg-tertiaryBrand-purple50'
                   }`}>
                     {getLevelStatus(level) === 'completed' ? (
                       <CheckCircle className={`w-5 h-5 ${activeLevel === level ? 'text-white' : 'text-green-600'}`} />
                     ) : (
                       React.cloneElement(levelForms[level]?.icon, {
-                        className: `w-5 h-5 ${activeLevel === level ? 'text-white' : 'text-purple-600'}`
+                        className: `w-5 h-5 ${activeLevel === level ? 'text-white' : 'text-tertiaryBrand-purple400'}`
                       })
                     )}
                   </div>
@@ -480,7 +480,7 @@ const verificarInsigniaPerfilCompleto = async () => {
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                     {React.cloneElement(levelForms[activeLevel]?.icon, {
-                      className: 'w-6 h-6 text-purple-600'
+                      className: 'w-6 h-6 text-tertiaryBrand-purple400'
                     })}
                   </div>
                   <div>
@@ -488,7 +488,7 @@ const verificarInsigniaPerfilCompleto = async () => {
                       {levelForms[activeLevel]?.title}
                     </h2>
                     {!getLevelStatus(activeLevel) && (
-                      <p className="text-purple-600 text-sm">
+                      <p className="text-tertiaryBrand-purple400 text-sm">
                         +{getPuntosPorNivel(activeLevel)} puntos
                       </p>
                     )}
@@ -501,7 +501,7 @@ const verificarInsigniaPerfilCompleto = async () => {
                       setEditMode(true);
                       showProgressFeedback(`Modo edición activado para Nivel ${activeLevel}`, { duration: 2000 });
                     }}
-                    className="flex items-center gap-2 px-4 py-2 text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors button-press hover-lift"
+                    className="flex items-center gap-2 px-4 py-2 text-tertiaryBrand-purple400 bg-tertiaryBrand-purple50 rounded-lg hover:bg-tertiaryBrand-purple100 transition-colors button-press hover-lift"
                   >
                     <Edit className="w-4 h-4" />
                     {getLevelStatus(activeLevel) ? 'Editar' : 'Completar'}
