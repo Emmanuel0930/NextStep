@@ -562,7 +562,10 @@ export default function Dashboard() {
       <ChatWindow 
         open={chatOpen}
         onClose={() => setChatOpen(false)}
-        cuentaId="guest-user"
+        cuentaId={localStorage.getItem('userId') || 'guest-user'}
+        onPuntosActualizados={(puntosNuevos) => {
+          setPoints(prev => prev + puntosNuevos);
+        }}
       />
     </div>
   );
