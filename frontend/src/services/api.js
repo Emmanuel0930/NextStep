@@ -29,6 +29,18 @@ api.interceptors.response.use(
   }
 );
 
+// Interceptor para añadir el token automáticamente a todas las peticiones
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 // ============ FUNCIONES DE AUTENTICACIÓN ============
 
 export const login = async (email, password) => {
@@ -48,6 +60,7 @@ export const register = async ({ nombreUsuario, correo, contraseña }) => {
     throw error;
   }
 };
+
 // ============ FUNCIONES DE EMPLEOS ============
 /**
  * Obtener lista de empleos desde la base de datos
@@ -198,5 +211,17 @@ export const getStats = async (usuarioId) => {
     throw error;
   }
 };
+
+// ============ FUNCIONES DE CHAT ============
+
+export async function getChatHistory(cuentaId, limit = 200) {
+  const response = await api.get(`/chat/history/${cuentaId}?limit=${limit}`);
+  return response.data;
+}
+
+export async function sendChatMessage(cuentaId, texto) {
+  const response = await api.post('/chat/send', { cuentaId, texto });
+  return response.data;
+}
 
 export default api;
