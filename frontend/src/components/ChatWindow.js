@@ -87,9 +87,9 @@ export default function ChatWindow({ open, onClose, cuentaId, onPuntosActualizad
 
   const content = (
     <div style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 99999 }} className="w-[92vw] sm:w-[380px] md:w-[520px] max-w-full bg-white rounded-2xl shadow-2xl overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b bg-purple-600">
+      <div className="flex items-center justify-between px-4 py-3 border-b bg-primaryBrand-400">
         <div className="font-semibold text-white">Jobbie</div>
-        <button onClick={onClose} aria-label="Cerrar chat" className="p-1 rounded hover:bg-purple-700">
+        <button onClick={onClose} aria-label="Cerrar chat" className="p-1 rounded hover:bg-primaryBrand-500">
           <X className="w-5 h-5 text-white" />
         </button>
       </div>
@@ -99,9 +99,9 @@ export default function ChatWindow({ open, onClose, cuentaId, onPuntosActualizad
         )}
         {messages.map((m, idx) => (
           <div key={idx} className={`flex ${m.autor === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`p-3 rounded-lg max-w-[85%] ${m.autor === 'user' ? 'bg-purple-600 text-white' : 'bg-white text-gray-800 border shadow-sm'}`}>
+            <div className={`p-3 rounded-lg max-w-[85%] ${m.autor === 'user' ? 'bg-secondaryBrand-500 text-white' : 'bg-white text-gray-800 border shadow-sm'}`}>
               <div className="text-sm whitespace-pre-wrap break-words">{m.texto}</div>
-              <div className={`text-xs mt-1 ${m.autor === 'user' ? 'text-purple-200' : 'text-gray-400'}`}>
+              <div className={`text-xs mt-1 ${m.autor === 'user' ? 'text-secondaryBrand-100' : 'text-gray-400'}`}>
                 {new Date(m.fecha).toLocaleTimeString()}
               </div>
             </div>
@@ -126,10 +126,10 @@ export default function ChatWindow({ open, onClose, cuentaId, onPuntosActualizad
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !loading) handleSend(); }}
           placeholder="Escribe un mensaje..."
-          className="flex-1 px-3 py-3 border rounded-lg text-sm"
+          className="flex-1 px-3 py-3 border rounded-lg text-sm focus:border-secondaryBrand-400 focus:ring-1 focus:ring-secondaryBrand-400"
           disabled={loading}
         />
-        <button onClick={handleSend} disabled={loading} className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm disabled:opacity-50">
+        <button onClick={handleSend} disabled={loading} className="px-4 py-2 bg-secondaryBrand-500 text-white rounded-lg text-sm disabled:opacity-50 hover:bg-secondaryBrand-600">
           {loading ? 'Enviando...' : 'Enviar'}
         </button>
       </div>
