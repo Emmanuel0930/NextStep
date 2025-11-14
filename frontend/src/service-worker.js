@@ -62,6 +62,20 @@ registerRoute(
   })
 );
 
+// Cache API de empleos
+registerRoute(
+  ({ url }) => url.pathname.includes('/api/jobs'),
+  new StaleWhileRevalidate({
+    cacheName: 'jobs-api',
+    plugins: [
+      new ExpirationPlugin({ 
+        maxEntries: 50,
+        maxAgeSeconds: 24 * 60 * 60
+      }),
+    ],
+  })
+);
+
 // This allows the web app to trigger skipWaiting via
 // registration.waiting.postMessage({type: 'SKIP_WAITING'})
 self.addEventListener('message', (event) => {

@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { X, MapPin, DollarSign, Clock, User, CheckCircle, FileText } from "lucide-react";
+import { X, MapPin, DollarSign, Clock, User, CheckCircle, FileText, WifiOff, Wifi } from "lucide-react";
 import { getJobs } from "../services/api";
 import SearchComponent from "../components/Search";
 import { useNotification } from "../components/NotificationProvider";
+import { offlineCache } from "../utils/offlineCache";
 
 
 export default function Jobs() {
@@ -15,34 +16,66 @@ export default function Jobs() {
   const [selectedJob, setSelectedJob] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [activeFilters, setActiveFilters] = useState({});
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [usingCache, setUsingCache] = useState(false);
   const { showNotification } = useNotification();
 
   useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        setLoading(true);
-        setError("");
-        
-        const jobsData = await getJobs();
-        
-        console.log('Jobs.js - Datos recibidos:', jobsData);
-        console.log('Total empleos:', jobsData.length);
-        
-        if (jobsData.length > 0) {
-          console.log('Primer empleo completo:', jobsData[0]);
-        }
-        
-        setJobs(jobsData);
-        setFilteredJobs(jobsData);
-        
-      } catch (error) {
-        console.error('Error al cargar empleos:', error);
-        setError("Error al cargar los empleos. Verifica tu conexión e intenta nuevamente.");
-      } finally {
-        setLoading(false);
+    const handleOnline = () => {
+      setIsOnline(true);
+      if (usingCache) {
+        fetchJobs();
       }
     };
+    const handleOffline = () => setIsOnline(false);
 
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [usingCache]);
+
+  const fetchJobs = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      setUsingCache(false);
+      
+      const jobsData = await getJobs();
+      
+      console.log('Jobs.js - Datos recibidos:', jobsData);
+      console.log('Total empleos:', jobsData.length);
+      
+      if (jobsData.length > 0) {
+        console.log('Primer empleo completo:', jobsData[0]);
+      }
+      
+      setJobs(jobsData);
+      setFilteredJobs(jobsData);
+      offlineCache.saveJobs(jobsData);
+      
+    } catch (error) {
+      console.error('Error al cargar empleos:', error);
+      
+      const cachedJobs = offlineCache.getJobs();
+      if (cachedJobs && cachedJobs.length > 0) {
+        console.log('Usando cache offline');
+        setJobs(cachedJobs);
+        setFilteredJobs(cachedJobs);
+        setUsingCache(true);
+        setError("Sin conexión. Mostrando vacantes guardadas.");
+      } else {
+        setError("Error al cargar los empleos. Verifica tu conexión e intenta nuevamente.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchJobs();
   }, []);
 
@@ -187,18 +220,7 @@ export default function Jobs() {
   };
 
   const handleRetry = async () => {
-    try {
-      setLoading(true);
-      setError("");
-      const jobsData = await getJobs();
-      setJobs(jobsData);
-      setFilteredJobs(jobsData);
-    } catch (error) {
-      console.error('Error al reintentar:', error);
-      setError("Error al cargar los empleos. Verifica tu conexión e intenta nuevamente.");
-    } finally {
-      setLoading(false);
-    }
+    await fetchJobs();
   };
 
   const formatSalary = (salary) => {
@@ -249,6 +271,21 @@ export default function Jobs() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Indicador de estado offline */}
+      {!isOnline && (
+        <div className="bg-yellow-500 text-white px-4 py-2 text-center text-sm font-medium flex items-center justify-center gap-2">
+          <WifiOff className="w-4 h-4" />
+          <span>Sin conexión - Mostrando vacantes guardadas</span>
+        </div>
+      )}
+      
+      {usingCache && isOnline && (
+        <div className="bg-blue-500 text-white px-4 py-2 text-center text-sm font-medium flex items-center justify-center gap-2">
+          <Wifi className="w-4 h-4" />
+          <span>Conexión restablecida - Sincronizando...</span>
+        </div>
+      )}
+
       {/* Modal de Detalles del Empleo */}
       {showModal && selectedJob && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
