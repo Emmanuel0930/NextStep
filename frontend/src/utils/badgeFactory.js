@@ -4,25 +4,36 @@
 export const getBadgeTemplates = () => {
   return [
     {
+      key: 'bienvenido_tutorial',
+      nombre: 'Bienvenido a NextStep',
+      descripcion: 'Has completado el tutorial inicial de NextStep',
+      icono: '🎉',
+      puntosBonus: 50,
+      categoria: 'inicio'
+    },
+    {
       key: 'perfil_completo',
       nombre: 'Perfil Completo',
       descripcion: 'Completa los 4 niveles de tu perfil',
       icono: '🌟',
-      puntosBonus: 100
+      puntosBonus: 100,
+      categoria: 'perfil'
     },
     {
       key: '5_dias_activo',
       nombre: '5 Días Activo',
       descripcion: 'Entra 5 días consecutivos para mantener la racha',
       icono: '🔥',
-      puntosBonus: 50
+      puntosBonus: 50,
+      categoria: 'racha'
     },
     {
       key: 'primera_postulacion',
       nombre: 'Primera Postulación',
       descripcion: 'Envía tu primera postulación a una oferta',
       icono: '🚀',
-      puntosBonus: 10
+      puntosBonus: 10,
+      categoria: 'empleos'
     }
   ];
 };
@@ -34,8 +45,7 @@ export const isTemplateUnlocked = (template, serverInsignias = []) => {
   const normalize = (s = '') =>
     String(s)
       .normalize('NFD')
-      .normalize('NFC')
-        .replace(/[\u0300-\u036f]/g, '') // remove diacritics
+      .replace(/[\u0300-\u036f]/g, '') // remove diacritics
       .toLowerCase()
       .replace(/[^a-z0-9]/g, '');
 

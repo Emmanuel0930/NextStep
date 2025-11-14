@@ -1,8 +1,6 @@
-// frontend/src/services/api.js
 import axios from "axios";
-import config from '../config';
 
-const API_BASE_URL = config.API_URL;
+const API_BASE_URL = "http://localhost:5000/api";
 
 // Crear instancia de axios con configuración base
 const api = axios.create({
@@ -30,18 +28,6 @@ api.interceptors.response.use(
   }
 );
 
-// Interceptor para añadir el token automáticamente a todas las peticiones
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
 // ============ FUNCIONES DE AUTENTICACIÓN ============
 
 export const login = async (email, password) => {
@@ -63,6 +49,7 @@ export const register = async ({ nombreUsuario, correo, contraseña }) => {
 };
 
 // ============ FUNCIONES DE EMPLEOS ============
+
 /**
  * Obtener lista de empleos desde la base de datos
  * @returns {Promise<Array>} Lista de empleos con todos sus campos
@@ -151,15 +138,6 @@ export const getFavorites = async (cuentaId) => {
   }
 };
 
-export const reviewJob = async (empleoId, cuentaId) => {
-  try {
-    const response = await api.post(`/jobs/${empleoId}/revisar`, { cuentaId });
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
 /**
  * Buscar empleos por query
  * @param {string} query - Término de búsqueda
@@ -221,6 +199,107 @@ export const searchJobs = async (query) => {
   }
 };
 
+// ============ FUNCIONES DE CALIFICACIONES ============
+
+/**
+ * Calificar un empleo
+ * @param {string} cuentaId - ID del usuario
+ * @param {string} empleoId - ID del empleo
+ * @param {number} calificacion - Calificación de 1 a 5 estrellas
+ * @param {string} comentario - Comentario opcional
+ * @returns {Promise<Object>} Respuesta del servidor
+ */
+export const calificarEmpleo = async (cuentaId, empleoId, calificacion, comentario) => {
+  try {
+    console.log('⭐ Enviando calificación:', { cuentaId, empleoId, calificacion, comentario });
+    
+    const response = await api.post('/calificaciones/calificar', {
+      cuentaId,
+      empleoId,
+      calificacion,
+      comentario
+    });
+    
+    console.log('✅ Calificación guardada:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error calificando empleo:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener promedio de calificaciones de un empleo
+ * @param {string} empleoId - ID del empleo
+ * @returns {Promise<Object>} Datos del promedio
+ */
+export const getPromedioCalificaciones = async (empleoId) => {
+  try {
+    console.log('📊 Solicitando promedio para empleo:', empleoId);
+    
+    const response = await api.get(`/calificaciones/empleos/${empleoId}/promedio`);
+    
+    console.log('✅ Promedio recibido:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error obteniendo promedio:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener calificación del usuario para un empleo
+ * @param {string} empleoId - ID del empleo
+ * @param {string} cuentaId - ID del usuario
+ * @returns {Promise<Object>} Calificación del usuario
+ */
+export const getCalificacionUsuario = async (empleoId, cuentaId) => {
+  try {
+    console.log('👤 Solicitando calificación usuario:', { empleoId, cuentaId });
+    
+    const response = await api.get(`/calificaciones/usuario/${empleoId}?cuentaId=${cuentaId}`);
+    
+    console.log('✅ Calificación usuario recibida:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error obteniendo calificación usuario:', error);
+    throw error;
+  }
+};
+
+// ============ FUNCIONES DE RANKING ============
+
+/**
+ * Obtener ranking de usuarios
+ * @param {number} limite - Número de usuarios por página
+ * @param {number} pagina - Página actual
+ * @returns {Promise<Object>} Datos del ranking
+ */
+export const getRanking = async (limite = 20, pagina = 1) => {
+  try {
+    const response = await api.get(`/ranking/ranking?limite=${limite}&pagina=${pagina}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error obteniendo ranking:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener posición del usuario actual en el ranking
+ * @param {string} usuarioId - ID del usuario
+ * @returns {Promise<Object>} Posición del usuario
+ */
+export const getMiPosicionRanking = async (usuarioId) => {
+  try {
+    const response = await api.get(`/ranking/mi-posicion?usuarioId=${usuarioId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error obteniendo mi posición:', error);
+    throw error;
+  }
+};
+
 // ============ FUNCIONES DE DASHBOARD ============
 
 export const getDashboardData = async (usuarioId) => {
@@ -249,17 +328,5 @@ export const getStats = async (usuarioId) => {
     throw error;
   }
 };
-
-// ============ FUNCIONES DE CHAT ============
-
-export async function getChatHistory(cuentaId, limit = 200) {
-  const response = await api.get(`/chat/history/${cuentaId}?limit=${limit}`);
-  return response.data;
-}
-
-export async function sendChatMessage(cuentaId, texto) {
-  const response = await api.post('/chat/send', { cuentaId, texto });
-  return response.data;
-}
 
 export default api;

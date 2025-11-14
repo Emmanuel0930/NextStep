@@ -1,7 +1,5 @@
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
 const app = express();
 const PORT = 5000;
 
@@ -10,20 +8,12 @@ const connectDB = require('../datos/config/database');
 // Conectar a la base de datos
 connectDB();
 
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/magneto-engage', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('✅ MongoDB conectado'))
-.catch(err => console.error('❌ Error MongoDB:', err));
-
 // Middlewares
-const allowedOrigins = process.env.ALLOWED_ORIGINS 
-  ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:3000', 'https://nextstep-front.loca.lt'];
-
 app.use(cors({
-  origin: allowedOrigins,
+  origin: [
+    'http://localhost:3000',
+    'https://nextstep-front.loca.lt'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -37,8 +27,11 @@ const perfilRoutes = require('./rutas/perfil');
 const aplicacionesRoutes = require('./rutas/aplicaciones');
 const insigniasRoutes = require('./rutas/insignias');
 const rachasRoutes = require('./rutas/rachas');
-const notificacionesRoutes = require('./rutas/notificaciones'); 
-const chatRoutes = require('./routes/chat');
+const notificacionesRoutes = require('./rutas/notificaciones');
+const calificacionesRoutes = require('./rutas/calificaciones');
+
+// NUEVA IMPORTACIÓN - AGREGAR ESTA LÍNEA
+const rankingRoutes = require('./rutas/ranking');
 
 // Usar rutas
 app.use('/api', authRoutes);
@@ -48,7 +41,10 @@ app.use('/api', aplicacionesRoutes);
 app.use('/api/insignias', insigniasRoutes);
 app.use('/api/rachas', rachasRoutes);
 app.use('/api/notificaciones', notificacionesRoutes);
-app.use('/api/chat', chatRoutes);
+app.use('/api/calificaciones', calificacionesRoutes);
+
+// NUEVA RUTA - AGREGAR ESTA LÍNEA
+app.use('/api/ranking', rankingRoutes);
 
 // Ruta raíz
 app.get('/', (req, res) => {
@@ -69,6 +65,14 @@ app.get('/', (req, res) => {
       'POST /api/aplicar',
       'GET /api/insignias/insignia/:cuentaId',
       'POST /api/insignias/verificar-perfil-completo',
+      // NUEVOS ENDPOINTS - AGREGAR ESTAS LÍNEAS
+      '--- RANKING ---',
+      'GET /api/ranking/ranking',
+      'GET /api/ranking/mi-posicion',
+      '--- CALIFICACIONES ---',
+      'POST /api/calificaciones/calificar',
+      'GET /api/calificaciones/empleos/:id/promedio',
+      'GET /api/calificaciones/usuario/:empleoId',
       '--- RACHAS DIARIAS ---',
       'GET /api/rachas/estadisticas/:cuentaId',
       'POST /api/rachas/actualizar-login',

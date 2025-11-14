@@ -4,9 +4,6 @@ import { useFeedback } from "../components/FeedbackProvider";
 import { Award, Star, RefreshCw } from 'lucide-react';
 import BadgePanel from '../components/BadgePanel';
 import { getBadgeTemplates } from '../utils/badgeFactory';
-import config from '../config';
-
-const API_BASE_URL = config.API_URL;
 
 export default function Insignias() {
   const [insignia, setInsignia] = useState(null);
@@ -38,7 +35,7 @@ export default function Insignias() {
       setLoading(true);
       setError('');
       
-      const response = await fetch(`${API_BASE_URL}/insignias/insignia/${userId}`);
+      const response = await fetch(`http://localhost:5000/api/insignias/insignia/${userId}`);
       
       if (!response.ok) {
         throw new Error(`Error HTTP: ${response.status}`);
@@ -61,7 +58,7 @@ export default function Insignias() {
 
   const fetchBadgeCounts = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/perfil/${userId}`);
+      const res = await fetch(`http://localhost:5000/api/perfil/${userId}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (data.success && data.perfil && Array.isArray(data.perfil.insignias)) {
@@ -82,7 +79,7 @@ export default function Insignias() {
       setVerificando(true);
       console.log('🔄 Verificando perfil completo...');
       
-      const response = await fetch(`${API_BASE_URL}/insignias/verificar-perfil-completo`, {
+      const response = await fetch('http://localhost:5000/api/insignias/verificar-perfil-completo', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -129,7 +126,10 @@ export default function Insignias() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-purple-100 to-pink-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white py-12 px-4">
+      <div 
+        className="bg-gradient-to-r from-purple-600 to-purple-700 text-white py-12 px-4"
+        data-tutorial="badges-section"
+      >
         <div className="max-w-4xl mx-auto text-center">
           <div className="flex items-center justify-center mb-4">
             <Award className="w-12 h-12 mr-3" />
@@ -144,6 +144,7 @@ export default function Insignias() {
             onClick={handleVerificarManual}
             disabled={verificando}
             className="mt-4 inline-flex items-center gap-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg transition-all disabled:opacity-50 button-press hover-lift"
+            data-tutorial="verify-progress-button"
           >
             {verificando ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
@@ -208,7 +209,10 @@ export default function Insignias() {
         )}
 
         {/* Estadística */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-purple-100 mb-8">
+        <div 
+          className="bg-white rounded-2xl p-6 shadow-lg border border-purple-100 mb-8"
+          data-tutorial="badges-progress"
+        >
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold text-gray-800 mb-2">Tu Progreso</h2>
@@ -233,14 +237,17 @@ export default function Insignias() {
           </div>
         </div>
 
-        
-
         {/* Panel de Insignias: colección completa (desbloqueadas y pendientes) */}
-        <BadgePanel />
+        <div data-tutorial="badges-collection">
+          <BadgePanel />
+        </div>
 
         {/* Mensaje Motivacional */}
         {!insignia?.obtenida && (
-          <div className="mt-8 bg-gradient-to-r from-purple-600 to-purple-700 rounded-2xl p-8 text-white text-center shadow-xl">
+          <div 
+            className="mt-8 bg-gradient-to-r from-purple-600 to-purple-700 rounded-2xl p-8 text-white text-center shadow-xl"
+            data-tutorial="badges-motivation"
+          >
             <Star className="w-16 h-16 mx-auto mb-4 opacity-90" />
             <h3 className="text-2xl font-bold mb-3">¡Completa tu perfil!</h3>
             <p className="text-purple-100 text-lg mb-6">
@@ -251,6 +258,7 @@ export default function Insignias() {
               <a
                 href="/perfil"
                 className="inline-block bg-white text-purple-600 px-8 py-3 rounded-xl font-semibold hover:bg-purple-50 transition-all shadow-lg hover:shadow-xl button-press hover-lift"
+                data-tutorial="go-to-profile-button"
               >
                 Ir a Mi Perfil
               </a>
@@ -284,7 +292,4 @@ export default function Insignias() {
         )}
       </div>
     </div>
-  );
-}
-
-// Insignia principal removed: collection view now contains all badges
+  )}; 

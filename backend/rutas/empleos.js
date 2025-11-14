@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Empleos = require('../../datos/modelos/Empleos');
 const InteraccionEmpleosCuenta = require('../../datos/modelos/InteraccionEmpleosCuenta');
-const Cuenta = require('../../datos/modelos/Cuenta');
 
 // Obtener todos los empleos
 router.get('/jobs', async (req, res) => {
@@ -109,71 +108,6 @@ router.post('/jobs/:id/favorito', async (req, res) => {
   } catch (error) {
     console.error('Error marcando favorito:', error);
     res.status(500).json({ success: false, message: 'Error marcando favorito', error: error.message });
-  }
-});
-
-router.post('/jobs/:id/revisar', async (req, res) => {
-  try {
-    const { cuentaId } = req.body;
-
-    if (!cuentaId) {
-      return res.status(400).json({ success: false, message: 'Falta cuentaId' });
-    }
-
-    const cuenta = await Cuenta.findById(cuentaId);
-    if (!cuenta) {
-      return res.status(404).json({ success: false, message: 'Cuenta no encontrada' });
-    }
-
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-    
-    const ultimaFecha = cuenta.puntosRevisiones?.ultimaFecha 
-      ? new Date(cuenta.puntosRevisiones.ultimaFecha) 
-      : null;
-    
-    if (ultimaFecha) {
-      ultimaFecha.setHours(0, 0, 0, 0);
-    }
-
-    if (!ultimaFecha || ultimaFecha.getTime() !== hoy.getTime()) {
-      cuenta.puntosRevisiones = {
-        puntosDia: 0,
-        vacantesRevisiadas: 0,
-        ultimaFecha: hoy
-      };
-    }
-
-    if (cuenta.puntosRevisiones.vacantesRevisiadas >= 10) {
-      return res.json({ 
-        success: false, 
-        message: 'Límite diario alcanzado',
-        puntosGanados: 0,
-        puntosHoy: cuenta.puntosRevisiones.puntosDia,
-        vacantesRevisiadas: cuenta.puntosRevisiones.vacantesRevisiadas,
-        limiteAlcanzado: true
-      });
-    }
-
-    const puntosGanados = 5;
-    cuenta.puntosRevisiones.puntosDia += puntosGanados;
-    cuenta.puntosRevisiones.vacantesRevisiadas += 1;
-    cuenta.puntos += puntosGanados;
-
-    await cuenta.save();
-
-    res.json({ 
-      success: true, 
-      puntosGanados,
-      puntosHoy: cuenta.puntosRevisiones.puntosDia,
-      puntosTotal: cuenta.puntos,
-      vacantesRevisiadas: cuenta.puntosRevisiones.vacantesRevisiadas,
-      limiteAlcanzado: cuenta.puntosRevisiones.vacantesRevisiadas >= 10
-    });
-
-  } catch (error) {
-    console.error('Error registrando revisión:', error);
-    res.status(500).json({ success: false, message: 'Error al registrar revisión' });
   }
 });
 

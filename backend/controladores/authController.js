@@ -1,4 +1,3 @@
-
 const Cuenta = require('../../datos/modelos/Cuenta');
 const Ingresos = require('../../datos/modelos/Ingresos');
 const Racha = require('../../datos/modelos/Racha');

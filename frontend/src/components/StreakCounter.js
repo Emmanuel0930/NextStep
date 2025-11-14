@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Flame, Trophy, Calendar, Target, Settings } from 'lucide-react';
-import config from '../config';
-
-const API_BASE_URL = config.API_URL;
 
 const StreakCounter = ({ cuentaId, size = 'normal', showConfig = false }) => {
   const [estadisticas, setEstadisticas] = useState(null);
@@ -51,7 +48,7 @@ const StreakCounter = ({ cuentaId, size = 'normal', showConfig = false }) => {
   const cargarEstadisticas = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/rachas/estadisticas/${cuentaId}`);
+      const response = await fetch(`http://localhost:5000/api/rachas/estadisticas/${cuentaId}`);
       const data = await response.json();
 
       if (data.success) {
@@ -70,7 +67,7 @@ const StreakCounter = ({ cuentaId, size = 'normal', showConfig = false }) => {
 
   const configurarNotificaciones = async (nuevaConfig) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/rachas/configurar-notificaciones`, {
+      const response = await fetch('http://localhost:5000/api/rachas/configurar-notificaciones', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
