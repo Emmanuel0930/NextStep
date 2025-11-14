@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { User, Trophy, Target, Zap, Briefcase, MapPin, DollarSign } from 'lucide-react';
+import { User, Trophy, Target, Zap, Briefcase, MapPin, DollarSign, MessageSquare } from 'lucide-react';
 import NivelDisplay from "../components/NivelDisplay";
 import StreakCounter from "../components/StreakCounter";
+import ChatWindow from "../components/ChatWindow";
 import { calcularNivel, getSiguienteNivel, calcularProgreso } from "../utils/nivelesSystem";
 
 export default function Dashboard() {
@@ -14,6 +15,7 @@ export default function Dashboard() {
   const [streak, setStreak] = useState(0);
   const [userProfile, setUserProfile] = useState(null);
   const [rachaData, setRachaData] = useState(null);
+  const [chatOpen, setChatOpen] = useState(false);
 
   // Usar el sistema de niveles dinámico
   const currentLevelInfo = calcularNivel(points);
@@ -166,7 +168,7 @@ export default function Dashboard() {
   ];
 
   const handleMascotClick = () => {
-    alert('¡Hola! Soy tu asistente virtual. El chatbot estará disponible pronto 🤖');
+    setChatOpen(true);
   };
 
   // Sistema de retos dinámicos
@@ -349,6 +351,26 @@ export default function Dashboard() {
         </p>
       </div>
     );
+  };
+
+  const handlePuntosActualizados = async (puntosGanados) => {
+    // Actualizar puntos localmente
+    setPoints(prev => prev + puntosGanados);
+    
+    // Opcional: refrescar desde el servidor
+    try {
+      const userId = localStorage.getItem('userId');
+      const perfilResponse = await fetch(`http://localhost:5000/api/perfil/${userId}`);
+      if (perfilResponse.ok) {
+        const perfilData = await perfilResponse.json();
+        if (perfilData.success) {
+          setPoints(perfilData.perfil.cuenta.puntos);
+          setLevel(perfilData.perfil.cuenta.nivel);
+        }
+      }
+    } catch (err) {
+      console.error('Error actualizando perfil:', err);
+    }
   };
 
   return (
@@ -569,10 +591,28 @@ export default function Dashboard() {
 
       <button
         onClick={handleMascotClick}
-        className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-purple-600 to-purple-700 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50 hover:scale-110"
+        aria-label="Chat de soporte"
+        className="fixed bottom-[10px] right-[10px] w-[120px] h-[120px] bg-transparent rounded-none shadow-none transition-transform duration-300 transform flex items-center justify-center z-50 hover:scale-110 hover:-translate-y-1 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+        style={{ position: 'fixed' }}
       >
-        <div className="text-2xl">🤖</div>
+        <div className="relative w-full h-full flex items-center justify-center">
+          <img
+            src="/jobbie.png"
+            alt="Logo"
+            className="w-[100px] h-[100px] object-contain pointer-events-none"
+          />
+          <span className="absolute top-4 right-4 w-5 h-5 bg-purple-600 rounded-full shadow-sm pointer-events-none flex items-center justify-center">
+            <MessageSquare className="w-3 h-3 text-white" />
+          </span>
+        </div>
       </button>
+
+      <ChatWindow 
+        open={chatOpen}
+        onClose={() => setChatOpen(false)}
+        cuentaId={localStorage.getItem('userId')}
+        onPuntosActualizados={handlePuntosActualizados}
+      />
     </div>
   );
 }
