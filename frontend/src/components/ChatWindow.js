@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
+import config from '../config';
+
+const API_BASE_URL = config.API_URL;
 
 export default function ChatWindow({ open, onClose, cuentaId, onPuntosActualizados }) {
   const [messages, setMessages] = useState([]);
@@ -17,7 +20,7 @@ export default function ChatWindow({ open, onClose, cuentaId, onPuntosActualizad
     const loadHistory = async () => {
       if (cuentaId && cuentaId !== 'guest-user') {
         try {
-          const response = await fetch(`http://localhost:5000/api/chat/history/${cuentaId}`);
+          const response = await fetch(`${API_BASE_URL}/chat/history/${cuentaId}`);
           const data = await response.json();
           
           if (data.success && data.messages) {
@@ -48,7 +51,7 @@ export default function ChatWindow({ open, onClose, cuentaId, onPuntosActualizad
     setTyping(true);
     
     try {
-      const response = await fetch('http://localhost:5000/api/chat/send', {
+      const response = await fetch(`${API_BASE_URL}/chat/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cuentaId, texto })

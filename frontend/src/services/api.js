@@ -1,7 +1,8 @@
 // frontend/src/services/api.js
 import axios from "axios";
+import config from '../config';
 
-const API_BASE_URL = "https://nextstep-back.loca.lt/api";
+const API_BASE_URL = config.API_URL;
 
 // Crear instancia de axios con configuración base
 const api = axios.create({
@@ -144,6 +145,15 @@ export const toggleFavorite = async (empleoId, cuentaId, favorito) => {
 export const getFavorites = async (cuentaId) => {
   try {
     const response = await api.get(`/perfil/${cuentaId}/favoritos`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const reviewJob = async (empleoId, cuentaId) => {
+  try {
+    const response = await api.post(`/jobs/${empleoId}/revisar`, { cuentaId });
     return response.data;
   } catch (error) {
     throw error;

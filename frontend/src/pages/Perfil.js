@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { 
   User, Briefcase, FileText, Languages, Save, CheckCircle, 
-<<<<<<< HEAD
-  Award, Edit, X, MapPin, DollarSign, GraduationCap, 
-  Clock, Plus, Trash2, Heart 
-=======
   Award, Edit, MapPin, DollarSign, GraduationCap, 
-  Clock, Plus, Trash2 
->>>>>>> offline-pwa
+  Clock, Plus, Trash2, Heart 
 } from 'lucide-react';
 
 import { useNotification } from "../components/NotificationProvider";
 import { useFeedback } from "../components/FeedbackProvider";
 import PushNotifications from "../components/PushNotifications";
+import config from '../config';
+
+const API_BASE_URL = config.API_URL;
+
 export default function Perfil() {
   const [activeLevel, setActiveLevel] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -32,14 +31,14 @@ export default function Perfil() {
 
   const fetchUserProfile = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/perfil/${userId}`);
+      const response = await fetch(`${API_BASE_URL}/perfil/${userId}`);
       const data = await response.json();
       if (data.success) {
         setUserProfile(data.perfil);
         initializeFormData(data.perfil.niveles);
         // Obtener favoritos del usuario
         try {
-          const favResp = await fetch(`http://localhost:5000/api/perfil/${userId}/favoritos`);
+          const favResp = await fetch(`${API_BASE_URL}/perfil/${userId}/favoritos`);
           const favData = await favResp.json();
           if (favData && favData.success) {
             setFavoritos(favData.favoritos || []);
@@ -213,7 +212,7 @@ export default function Perfil() {
   setSaveStatus(prev => ({ ...prev, [level]: 'saving' }));
 
   try {
-    const response = await fetch(`http://localhost:5000/api/perfil/nivel${level}`, {
+    const response = await fetch(`${API_BASE_URL}/perfil/nivel${level}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -264,7 +263,7 @@ export default function Perfil() {
 const { showNotification } = useNotification();
 const verificarInsigniaPerfilCompleto = async () => {
   try {
-    const response = await fetch('http://localhost:5000/api/insignias/verificar-perfil-completo', {
+    const response = await fetch(`${API_BASE_URL}/insignias/verificar-perfil-completo`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cuentaId: userId })

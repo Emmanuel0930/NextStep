@@ -18,11 +18,12 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/magneto-e
 .catch(err => console.error('❌ Error MongoDB:', err));
 
 // Middlewares
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['http://localhost:3000', 'https://nextstep-front.loca.lt'];
+
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://nextstep-front.loca.lt' // URL pública para pruebas con localtunnel
-  ],
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']

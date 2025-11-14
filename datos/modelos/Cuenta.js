@@ -45,6 +45,11 @@ const CuentaSchema = new mongoose.Schema({
   lastLogin: { 
     type: Date, 
     default: Date.now 
+  },
+  puntosRevisiones: {
+    puntosDia: { type: Number, default: 0 },
+    vacantesRevisiadas: { type: Number, default: 0 },
+    ultimaFecha: { type: Date, default: null }
   }
 });
 

@@ -4,6 +4,9 @@ import NivelDisplay from "../components/NivelDisplay";
 import StreakCounter from "../components/StreakCounter";
 import ChatWindow from "../components/ChatWindow";
 import { calcularNivel, getSiguienteNivel, calcularProgreso } from "../utils/nivelesSystem";
+import config from '../config';
+
+const API_BASE_URL = config.API_URL;
 
 export default function Dashboard() {
   const [applicationsCount, setApplicationsCount] = useState(0);
@@ -44,7 +47,7 @@ export default function Dashboard() {
 
       try {
         // Obtener puntos actualizados del servidor
-        const perfilResponse = await fetch(`http://localhost:5000/api/perfil/${userId}`);
+        const perfilResponse = await fetch(`${API_BASE_URL}/perfil/${userId}`);
         if (perfilResponse.ok) {
           const perfilData = await perfilResponse.json();
           if (perfilData.success) {
@@ -62,7 +65,7 @@ export default function Dashboard() {
 
         // Obtener datos de racha
         try {
-          const rachaResponse = await fetch(`http://localhost:5000/api/rachas/estadisticas/${userId}`);
+          const rachaResponse = await fetch(`${API_BASE_URL}/rachas/estadisticas/${userId}`);
           if (rachaResponse.ok) {
             const rachaResult = await rachaResponse.json();
             if (rachaResult.success) {
@@ -75,7 +78,7 @@ export default function Dashboard() {
         }
 
         //Obtener número de postulaciones
-        const aplicacionesResponse = await fetch(`http://localhost:5000/api/mis-aplicaciones/${userId}`);
+        const aplicacionesResponse = await fetch(`${API_BASE_URL}/mis-aplicaciones/${userId}`);
         if (aplicacionesResponse.ok) {
           const aplicacionesData = await aplicacionesResponse.json();
           if (aplicacionesData.success) {
@@ -84,7 +87,7 @@ export default function Dashboard() {
         }
 
         // Obtener datos del dashboard con recomendaciones personalizadas
-        const dashboardResponse = await fetch(`http://localhost:5000/api/dashboard?usuarioId=${userId}`);
+        const dashboardResponse = await fetch(`${API_BASE_URL}/dashboard?usuarioId=${userId}`);
         const dashboardData = await dashboardResponse.json();
         
         if (dashboardData.success) {
@@ -92,19 +95,19 @@ export default function Dashboard() {
             setRecommendedJobs(dashboardData.recommendedJobs);
           } else {
             // Si no hay recomendaciones, obtener trabajos generales
-            const jobsResponse = await fetch('http://localhost:5000/api/jobs');
+            const jobsResponse = await fetch(`${API_BASE_URL}/jobs`);
             const jobsData = await jobsResponse.json();
             setRecommendedJobs(jobsData.slice(0, 5));
           }
         } else {
           // Fallback: obtener trabajos generales
-          const jobsResponse = await fetch('http://localhost:5000/api/jobs');
+          const jobsResponse = await fetch(`${API_BASE_URL}/jobs`);
           const jobsData = await jobsResponse.json();
           setRecommendedJobs(jobsData.slice(0, 5));
         }
 
         // Obtener racha del usuario
-        const streakResponse = await fetch(`http://localhost:5000/api/streak?usuarioId=${userId}`);
+        const streakResponse = await fetch(`${API_BASE_URL}/streak?usuarioId=${userId}`);
         const streakData = await streakResponse.json();
         if (streakData.success) {
           setStreak(streakData.currentStreak);
@@ -116,7 +119,7 @@ export default function Dashboard() {
         
         //Obtener empleos generales
         try {
-          const jobsResponse = await fetch('http://localhost:5000/api/jobs');
+          const jobsResponse = await fetch(`${API_BASE_URL}/jobs`);
           const jobsData = await jobsResponse.json();
           setRecommendedJobs(jobsData.slice(0, 5));
         } catch (jobsError) {

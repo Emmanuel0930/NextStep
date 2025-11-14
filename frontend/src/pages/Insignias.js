@@ -4,6 +4,9 @@ import { useFeedback } from "../components/FeedbackProvider";
 import { Award, Star, RefreshCw } from 'lucide-react';
 import BadgePanel from '../components/BadgePanel';
 import { getBadgeTemplates } from '../utils/badgeFactory';
+import config from '../config';
+
+const API_BASE_URL = config.API_URL;
 
 export default function Insignias() {
   const [insignia, setInsignia] = useState(null);
@@ -35,7 +38,7 @@ export default function Insignias() {
       setLoading(true);
       setError('');
       
-      const response = await fetch(`http://localhost:5000/api/insignias/insignia/${userId}`);
+      const response = await fetch(`${API_BASE_URL}/insignias/insignia/${userId}`);
       
       if (!response.ok) {
         throw new Error(`Error HTTP: ${response.status}`);
@@ -58,7 +61,7 @@ export default function Insignias() {
 
   const fetchBadgeCounts = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/perfil/${userId}`);
+      const res = await fetch(`${API_BASE_URL}/perfil/${userId}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (data.success && data.perfil && Array.isArray(data.perfil.insignias)) {
@@ -79,7 +82,7 @@ export default function Insignias() {
       setVerificando(true);
       console.log('🔄 Verificando perfil completo...');
       
-      const response = await fetch('http://localhost:5000/api/insignias/verificar-perfil-completo', {
+      const response = await fetch(`${API_BASE_URL}/insignias/verificar-perfil-completo`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

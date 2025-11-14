@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
-import { X, MapPin, DollarSign, Clock, User, CheckCircle, FileText, WifiOff, Wifi } from "lucide-react";
-import { getJobs, toggleFavorite, getFavorites } from "../services/api";
+import { X, MapPin, DollarSign, Clock, User, CheckCircle, FileText, WifiOff, Wifi, Heart, Award } from "lucide-react";
+import { getJobs, toggleFavorite, reviewJob } from "../services/api";
 import SearchComponent from "../components/Search";
 import { useNotification } from "../components/NotificationProvider";
 import { offlineCache } from "../utils/offlineCache";
 import { useFeedback } from "../components/FeedbackProvider";
+import config from '../config';
+
+const API_BASE_URL = config.API_URL;
 
 export default function Jobs() {
   const [jobs, setJobs] = useState([]);
@@ -19,6 +22,7 @@ export default function Jobs() {
   const [activeFilters, setActiveFilters] = useState({});
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [usingCache, setUsingCache] = useState(false);
+  const [reviewStats, setReviewStats] = useState({ puntos: 0, revisadas: 0, limite: false });
   const { showNotification } = useNotification();
   const { celebrateAchievement, showJobActionFeedback } = useFeedback();
 
@@ -177,10 +181,29 @@ export default function Jobs() {
     setActiveFilters(filters);
   };
 
-  const handleJobClick = (job) => {
+  const handleJobClick = async (job) => {
     console.log('Job seleccionado completo:', job);
     setSelectedJob(job);
     setShowModal(true);
+    
+    const userId = localStorage.getItem('userId');
+    if (userId && !reviewStats.limite) {
+      try {
+        const result = await reviewJob(job.id, userId);
+        if (result.success) {
+          setReviewStats({
+            puntos: result.puntosHoy,
+            revisadas: result.vacantesRevisiadas,
+            limite: result.limiteAlcanzado
+          });
+          showNotification(`+${result.puntosGanados} puntos por revisar vacante`);
+        } else if (result.limiteAlcanzado) {
+          setReviewStats(prev => ({ ...prev, limite: true }));
+        }
+      } catch (error) {
+        console.error('Error al registrar revisión:', error);
+      }
+    }
   };
 
   const handleCloseModal = () => {
@@ -196,7 +219,7 @@ export default function Jobs() {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/aplicar', {
+      const response = await fetch(`${API_BASE_URL}/aplicar`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -307,7 +330,6 @@ export default function Jobs() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Indicador de estado offline */}
       {!isOnline && (
         <div className="bg-yellow-500 text-white px-4 py-2 text-center text-sm font-medium flex items-center justify-center gap-2">
           <WifiOff className="w-4 h-4" />
@@ -319,6 +341,18 @@ export default function Jobs() {
         <div className="bg-blue-500 text-white px-4 py-2 text-center text-sm font-medium flex items-center justify-center gap-2">
           <Wifi className="w-4 h-4" />
           <span>Conexión restablecida - Sincronizando...</span>
+        </div>
+      )}
+
+      {reviewStats.revisadas > 0 && (
+        <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-3 text-center">
+          <div className="flex items-center justify-center gap-3">
+            <Award className="w-5 h-5" />
+            <span className="font-semibold">
+              {reviewStats.puntos} puntos hoy | {reviewStats.revisadas}/10 vacantes revisadas
+            </span>
+            {reviewStats.limite && <span className="text-purple-200">(Límite alcanzado)</span>}
+          </div>
         </div>
       )}
 

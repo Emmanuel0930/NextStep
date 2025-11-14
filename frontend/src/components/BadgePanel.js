@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import BadgeCard from './BadgeCard';
 import { getBadgeTemplates } from '../utils/badgeFactory';
+import config from '../config';
+
+const API_BASE_URL = config.API_URL;
 
 const BadgePanel = () => {
   const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
@@ -24,7 +27,7 @@ const BadgePanel = () => {
 
       try {
         setLoading(true);
-        const res = await fetch(`http://localhost:5000/api/perfil/${userId}`);
+        const res = await fetch(`${API_BASE_URL}/perfil/${userId}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         if (data.success && data.perfil) {
