@@ -90,9 +90,9 @@ export default function ChatWindow({ open, onClose, cuentaId, onPuntosActualizad
 
   const content = (
     <div style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 99999 }} className="w-[92vw] sm:w-[380px] md:w-[520px] max-w-full bg-white rounded-2xl shadow-2xl overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b bg-primaryBrand-300">
+      <div className="flex items-center justify-between px-4 py-3 border-b bg-primaryBrand-400">
         <div className="font-semibold text-white">Jobbie</div>
-        <button onClick={onClose} aria-label="Cerrar chat" className="p-1 rounded hover:bg-primaryBrand-400">
+        <button onClick={onClose} aria-label="Cerrar chat" className="p-1 rounded hover:bg-primaryBrand-500">
           <X className="w-5 h-5 text-white" />
         </button>
       </div>
@@ -129,10 +129,10 @@ export default function ChatWindow({ open, onClose, cuentaId, onPuntosActualizad
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !loading) handleSend(); }}
           placeholder="Escribe un mensaje..."
-          className="flex-1 px-3 py-3 border rounded-lg text-sm focus:border-secondaryBrand-500 focus:ring-1 focus:ring-secondaryBrand-500"
+          className="flex-1 px-3 py-3 border rounded-lg text-sm focus:border-secondaryBrand-400 focus:ring-1 focus:ring-secondaryBrand-400"
           disabled={loading}
         />
-        <button onClick={handleSend} disabled={loading} className="px-4 py-2 bg-secondaryBrand-600 text-white rounded-lg text-sm disabled:opacity-50 hover:bg-secondaryBrand-500">
+        <button onClick={handleSend} disabled={loading} className="px-4 py-2 bg-secondaryBrand-500 text-white rounded-lg text-sm disabled:opacity-50 hover:bg-secondaryBrand-600">
           {loading ? 'Enviando...' : 'Enviar'}
         </button>
       </div>

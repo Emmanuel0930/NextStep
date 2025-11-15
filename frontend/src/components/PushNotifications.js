@@ -46,7 +46,7 @@ const PushNotifications = ({ cuentaId }) => {
 
   const cargarConfiguracion = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/rachas/estadisticas/${cuentaId}`);
+      const response = await fetch(`${API_BASE_URL}/rachas/estadisticas/${cuentaId}`)
       const data = await response.json();
       
       if (data.success) {

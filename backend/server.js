@@ -18,11 +18,12 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/magneto-e
 .catch(err => console.error('❌ Error MongoDB:', err));
 
 // Middlewares
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['http://localhost:3000', 'https://nextstep-front.loca.lt'];
+
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://nextstep-front.loca.lt' // URL pública para pruebas con localtunnel
-  ],
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -36,8 +37,12 @@ const perfilRoutes = require('./rutas/perfil');
 const aplicacionesRoutes = require('./rutas/aplicaciones');
 const insigniasRoutes = require('./rutas/insignias');
 const rachasRoutes = require('./rutas/rachas');
-const notificacionesRoutes = require('./rutas/notificaciones'); 
+const notificacionesRoutes = require('./rutas/notificaciones');
+const calificacionesRoutes = require('./rutas/calificaciones');
 const chatRoutes = require('./routes/chat');
+
+// NUEVA IMPORTACIÓN - AGREGAR ESTA LÍNEA
+const rankingRoutes = require('./rutas/ranking');
 
 // Usar rutas
 app.use('/api', authRoutes);
@@ -47,7 +52,9 @@ app.use('/api', aplicacionesRoutes);
 app.use('/api/insignias', insigniasRoutes);
 app.use('/api/rachas', rachasRoutes);
 app.use('/api/notificaciones', notificacionesRoutes);
+app.use('/api/calificaciones', calificacionesRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/ranking', rankingRoutes);
 
 // Ruta raíz
 app.get('/', (req, res) => {

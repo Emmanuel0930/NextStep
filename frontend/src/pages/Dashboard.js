@@ -318,8 +318,8 @@ export default function Dashboard() {
       return (
         <div className="text-center py-4">
           <span className="text-6xl">🎉</span>
-          <p className="text-primaryBrand-400 mt-2">¡Has completado todos los retos disponibles!</p>
-          <p className="text-sm text-primaryBrand-300 mt-1">Mantén tu actividad diaria para seguir creciendo</p>
+          <p className="text-gray-600 mt-2">¡Has completado todos los retos disponibles!</p>
+          <p className="text-sm text-gray-500 mt-1">Mantén tu actividad diaria para seguir creciendo</p>
         </div>
       );
     }
@@ -328,20 +328,20 @@ export default function Dashboard() {
 
     return (
       <div>
-        <p className="text-primaryBrand-400 mb-3">
+        <p className="text-gray-500 mb-3">
           {retoActual.titulo.replace(/[🎯📝💼🎓⭐🚀📊🔥⚡👑💎🏆🌟✨]/g, '').trim()}
         </p>
         
         {/* Mostrar progreso si es aplicable */}
         {retoActual.meta > 0 && retoActual.progreso !== undefined && (
           <div className="mb-2">
-            <div className="flex items-center justify-between text-sm text-primaryBrand-300 mb-1">
+            <div className="flex items-center justify-between text-sm text-gray-600 mb-1">
               <span>Progreso actual</span>
               <span>{retoActual.progreso} / {retoActual.meta}</span>
             </div>
-            <div className="w-full bg-tertiaryBrand-purple100 rounded h-1.5">
+            <div className="w-full bg-gray-200 rounded h-1.5">
               <div 
-                className="h-1.5 rounded bg-gradient-to-r from-purple-500 to-purple-600 transition-all duration-500"
+                className="h-1.5 rounded bg-purple-600 transition-all duration-500"
                 style={{ width: `${porcentajeProgreso}%` }}
               />
             </div>
@@ -349,18 +349,38 @@ export default function Dashboard() {
         )}
         
         {/* Descripción adicional */}
-        <p className="text-sm text-primaryBrand-300">
+        <p className="text-sm text-gray-400">
           {retoActual.descripcion}
         </p>
       </div>
     );
   };
 
+  const handlePuntosActualizados = async (puntosGanados) => {
+    // Actualizar puntos localmente
+    setPoints(prev => prev + puntosGanados);
+    
+    // Opcional: refrescar desde el servidor
+    try {
+      const userId = localStorage.getItem('userId');
+      const perfilResponse = await fetch(`${API_BASE_URL}/perfil/${userId}`);
+      if (perfilResponse.ok) {
+        const perfilData = await perfilResponse.json();
+        if (perfilData.success) {
+          setPoints(perfilData.perfil.cuenta.puntos);
+          setLevel(perfilData.perfil.cuenta.nivel);
+        }
+      }
+    } catch (err) {
+      console.error('Error actualizando perfil:', err);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-white relative overflow-hidden">
-      <div className="absolute -left-32 -bottom-32 w-[500px] h-[500px] md:w-[800px] md:h-[800px] bg-tertiaryBrand-purple200 rounded-full opacity-30 z-0 pointer-events-none"></div>
+    <div className="min-h-screen bg-gray-50 relative overflow-hidden">
+      <div className="absolute -left-32 -bottom-32 w-[500px] h-[500px] md:w-[800px] md:h-[800px] bg-purple-500 rounded-full opacity-30 z-0 pointer-events-none"></div>
       
-      <div className="bg-white border-b border-primaryBrand-100 px-4 py-4">
+      <div className="bg-white border-b px-4 py-4">
         <div className="flex justify-center flex-wrap gap-2 max-w-6xl mx-auto">
           {tabs.map((tab) => (
             <button
@@ -368,8 +388,8 @@ export default function Dashboard() {
               onClick={() => setActiveTab(tab.name)}
               className={`px-6 py-2 md:px-8 md:py-3 rounded-full text-sm md:text-base font-semibold transition-all duration-200 ${
                 tab.name === activeTab
-                  ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg'
-                  : 'bg-tertiaryBrand-purple50 text-primaryBrand-400 hover:bg-tertiaryBrand-purple100'
+                  ? 'bg-purple-600 text-white shadow-lg'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
               {tab.name}
@@ -378,21 +398,28 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="px-4 md:px-8 py-6 max-w-6xl mx-auto">
+      {/* AGREGAR data-tutorial PARA EL TUTORIAL */}
+      <div 
+        className="px-4 md:px-8 py-6 max-w-6xl mx-auto"
+        data-tutorial="dashboard-section"
+      >
         {loading ? (
-          <div className="text-center text-primaryBrand-400 py-12">
-            <div className="w-12 h-12 border-4 border-tertiaryBrand-purple200 border-t-primaryBrand-400 rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="text-center text-gray-500 py-12">
+            <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
             Cargando...
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
             <div className="lg:col-span-2 space-y-6">
-              <div className="bg-gradient-to-br from-white to-tertiaryBrand-purple50 rounded-2xl p-6 shadow-sm border border-primaryBrand-100 z-10 relative">
-                <h2 className="text-xl font-semibold text-primaryBrand-400 mb-3">Puntos</h2>
-                <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 to-purple-700 bg-clip-text text-transparent mb-2">
+              <div 
+                className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 z-10 relative"
+                data-tutorial="points-section"
+              >
+                <h2 className="text-xl font-semibold text-purple-600 mb-3">Puntos</h2>
+                <div className="text-5xl md:text-6xl font-bold text-purple-600 mb-2">
                   {points}{nextLevelInfo ? `/${maxPoints}` : ''}
                 </div>
-                <p className="text-tertiaryBrand-purple300 text-base">
+                <p className="text-gray-500 text-base">
                   {!nextLevelInfo 
                     ? "¡Felicidades! Has alcanzado el nivel máximo" 
                     : `Te faltan ${maxPoints - points} puntos para el nivel ${nextLevelInfo.nivel} - ${nextLevelInfo.nombre}`}
@@ -400,37 +427,152 @@ export default function Dashboard() {
               </div>
 
               {/* Nuevo sistema de niveles */}
-              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-6 shadow-sm border border-green-200 z-10 relative">
+              <div data-tutorial="levels-section">
                 <NivelDisplay puntos={points} showProgress={true} size="normal" />
               </div>
 
               {/* Sistema de Retos Dinámicos */}
-              <div className="bg-gradient-to-br from-secondaryBrand-50 to-tertiaryBrand-green50 rounded-2xl p-6 shadow-sm border border-secondaryBrand-200 z-10 relative">
-                <h3 className="text-lg font-semibold text-primaryBrand-400 mb-4 flex items-center gap-2">
-                  <div className="w-8 h-8 bg-gradient-to-r from-secondaryBrand-500 to-tertiaryBrand-green400 rounded-lg flex items-center justify-center">
-                    <Briefcase className="w-5 h-5 text-white" />
+              <div 
+                className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 z-10 relative"
+                data-tutorial="challenges-section"
+              >
+                <h3 className="text-xl font-semibold text-purple-600 mb-3 flex items-center gap-2">
+                  <Target className="w-5 h-5" />
+                  Siguiente Reto
+                </h3>
+                {getSiguienteReto()}
+              </div>
+
+              {/* Racha Diaria - Mobile */}
+              <div className="bg-gradient-to-br from-purple-600 to-purple-800 rounded-2xl p-6 text-white relative overflow-hidden lg:hidden z-10">
+                <div className="relative z-10 pr-20">
+                  <h3 className="text-xl font-bold mb-2">Tu Racha Diaria 🔥</h3>
+                  <p className="text-purple-100">
+                    {rachaData ? (
+                      rachaData.rachaActual > 0 
+                        ? `¡${rachaData.rachaActual} días consecutivos!`
+                        : 'Comienza tu racha hoy'
+                    ) : 'Cargando racha...'}
+                  </p>
+                  {rachaData?.mejorRacha > 0 && (
+                    <p className="text-purple-200 text-sm mt-1">
+                      Mejor racha: {rachaData.mejorRacha} días
+                    </p>
+                  )}
+                </div>
+                <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                  <div className="w-16 h-16 rounded-full bg-orange-400 flex items-center justify-center shadow-lg">
+                    <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center">
+                      <span className="text-2xl">🔥</span>
+                    </div>
                   </div>
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-red-500 rounded-full"></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              {/* Componente de Racha Completo - Desktop */}
+              <div 
+                className="hidden lg:block"
+                data-tutorial="streak-section"
+              >
+                <StreakCounter 
+                  cuentaId={localStorage.getItem('userId')} 
+                  size="normal" 
+                  showConfig={false}
+                />
+              </div>
+
+              {/* Tarjeta de Postulaciones - Desktop */}
+              <div className="hidden lg:block bg-white rounded-2xl p-6 shadow-sm border border-gray-100 z-10 relative">
+                <div className="flex items-center space-x-3 mb-3">
+                  <Target className="w-6 h-6 text-green-500" />
+                  <span className="text-gray-700 font-semibold">Mis Postulaciones</span>
+                </div>
+                <div className="text-3xl font-bold text-gray-800 mb-2">{applicationsCount}</div>
+                <p className="text-gray-500 text-sm">
+                  {applicationsCount === 0 
+                    ? 'Aún no has enviado postulaciones' 
+                    : applicationsCount === 1 
+                      ? 'Postulación enviada' 
+                      : 'Postulaciones enviadas'
+                  }
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-2 lg:grid-cols-1 gap-4 lg:hidden">
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 z-10 relative">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <span className="text-2xl">🔥</span>
+                    <span className="text-gray-500 font-medium">Racha actual</span>
+                  </div>
+                  <div className="text-3xl font-bold text-purple-800">
+                    {rachaData?.rachaActual || 0} días
+                  </div>
+                </div>
+                
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 z-10 relative">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <Target className="w-6 h-6 text-green-500" />
+                    <span className="text-gray-500 font-medium">Postulaciones</span>
+                  </div>
+                  <div className="text-3xl font-bold text-gray-800">{applicationsCount}</div>
+                </div>
+              </div>
+
+              {/* Card de Racha para escritorio - Simplificado */}
+              <div className="hidden lg:block bg-gradient-to-br from-purple-600 to-purple-800 rounded-2xl p-6 text-white relative overflow-hidden z-10">
+                <div className="relative z-10 pr-20">
+                  <h3 className="text-lg font-bold mb-2">Tu Racha Diaria 🔥</h3>
+                  <p className="text-purple-100 text-sm">
+                    {rachaData ? (
+                      rachaData.rachaActual > 0 
+                        ? `¡${rachaData.rachaActual} días consecutivos!`
+                        : 'Comienza tu racha hoy'
+                    ) : 'Cargando racha...'}
+                  </p>
+                  {rachaData?.mejorRacha > 0 && (
+                    <p className="text-purple-200 text-xs mt-1">
+                      Mejor racha: {rachaData.mejorRacha} días
+                    </p>
+                  )}
+                </div>
+                <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                  <div className="w-16 h-16 rounded-full bg-orange-400 flex items-center justify-center shadow-lg">
+                    <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center">
+                      <span className="text-2xl">🔥</span>
+                    </div>
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-red-500 rounded-full"></div>
+                </div>
+                <div className="absolute -left-4 -bottom-4 w-24 h-24 bg-purple-700 rounded-full opacity-50"></div>
+              </div>
+
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 z-10 relative">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <Briefcase className="w-5 h-5 text-purple-600" />
                   Oportunidades Recomendadas
                 </h3>
                 <div className="space-y-3">
                   {recommendedJobs.length > 0 ? (
                     recommendedJobs.slice(0, 5).map((job, idx) => (
-                      <div key={idx} className="border border-secondaryBrand-200 rounded-xl p-4 hover:shadow-md hover:border-secondaryBrand-400 hover:bg-gradient-to-r hover:from-white hover:to-secondaryBrand-50 transition-all cursor-pointer group">
+                      <div key={idx} className="border border-gray-100 rounded-xl p-4 hover:shadow-md hover:border-purple-200 transition-all cursor-pointer">
                         <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-secondaryBrand-100 to-tertiaryBrand-green100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:from-secondaryBrand-200 group-hover:to-tertiaryBrand-green200 transition-all">
-                            <Briefcase className="w-5 h-5 text-secondaryBrand-600 group-hover:text-secondaryBrand-700 transition-all" />
+                          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <Briefcase className="w-5 h-5 text-purple-600" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-primaryBrand-400 text-sm mb-1 group-hover:text-primaryBrand-500 transition-all">
+                            <div className="font-semibold text-gray-800 text-sm mb-1">
                               {getJobData(job, 'nombre')}
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-primaryBrand-300 mb-2">
-                              <MapPin className="w-3 h-3 text-secondaryBrand-400" />
+                            <div className="flex items-center gap-2 text-xs text-gray-600 mb-2">
+                              <MapPin className="w-3 h-3" />
                               {getJobData(job, 'ciudad')}
                             </div>
                             <div className="flex items-center gap-2">
-                              <DollarSign className="w-4 h-4 text-secondaryBrand-600" />
-                              <span className="text-secondaryBrand-600 font-semibold text-sm">
+                              <DollarSign className="w-4 h-4 text-green-600" />
+                              <span className="text-green-600 font-semibold text-sm">
                                 {formatSalary(getJobData(job, 'sueldo'))}
                               </span>
                             </div>
@@ -439,7 +581,7 @@ export default function Dashboard() {
                                 {getJobData(job, 'habilidades').slice(0, 3).map((skill, skillIdx) => (
                                   <span 
                                     key={skillIdx}
-                                    className="text-xs px-2 py-0.5 bg-gradient-to-r from-tertiaryBrand-green100 to-tertiaryBrand-green200 text-tertiaryBrand-green600 rounded-full border border-tertiaryBrand-green300"
+                                    className="text-xs px-2 py-0.5 bg-purple-50 text-purple-600 rounded"
                                   >
                                     {skill}
                                   </span>
@@ -452,10 +594,10 @@ export default function Dashboard() {
                     ))
                   ) : (
                     <div className="text-center py-8">
-                      <div className="w-16 h-16 bg-gradient-to-br from-secondaryBrand-100 to-tertiaryBrand-green100 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <Briefcase className="w-8 h-8 text-secondaryBrand-500" />
+                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <Briefcase className="w-8 h-8 text-gray-400" />
                       </div>
-                      <p className="text-primaryBrand-300 text-sm">No hay oportunidades disponibles</p>
+                      <p className="text-gray-500 text-sm">No hay oportunidades disponibles</p>
                     </div>
                   )}
                 </div>
@@ -544,7 +686,7 @@ export default function Dashboard() {
       <button
         onClick={handleMascotClick}
         aria-label="Chat de soporte"
-        className="fixed bottom-[10px] right-[10px] w-[120px] h-[120px] bg-transparent rounded-none shadow-none transition-transform duration-300 transform flex items-center justify-center z-50 hover:scale-110 hover:-translate-y-1 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primaryBrand-400"
+        className="fixed bottom-[10px] right-[10px] w-[120px] h-[120px] bg-transparent rounded-none shadow-none transition-transform duration-300 transform flex items-center justify-center z-50 hover:scale-110 hover:-translate-y-1 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-600"
         style={{ position: 'fixed' }}
       >
         <div className="relative w-full h-full flex items-center justify-center">
@@ -563,9 +705,7 @@ export default function Dashboard() {
         open={chatOpen}
         onClose={() => setChatOpen(false)}
         cuentaId={localStorage.getItem('userId') || 'guest-user'}
-        onPuntosActualizados={(puntosNuevos) => {
-          setPoints(prev => prev + puntosNuevos);
-        }}
+        onPuntosActualizados={handlePuntosActualizados}
       />
     </div>
   );

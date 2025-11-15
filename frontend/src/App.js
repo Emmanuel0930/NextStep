@@ -7,9 +7,12 @@ import Dashboard from "./pages/Dashboard";
 import Navbar from "./components/Navbar";
 import Perfil from './pages/Perfil';
 import Insignias from './pages/Insignias'; 
+import Ranking from './pages/Ranking'; 
 import ProtectedRoute from './components/ProtectedRoute';
 import { useNotification } from "./components/NotificationProvider";
 import FeedbackProvider from "./components/FeedbackProvider";
+import TutorialProvider from "./components/TutorialProvider";
+import TutorialModal from "./components/TutorialModal";
 
 function App() {
   const { showNotification } = useNotification();
@@ -40,40 +43,50 @@ function App() {
 
   return (
     <FeedbackProvider>
-      <div className="min-h-screen bg-gray-100">
-        <Router>
-          {localStorage.getItem('userId') && <Navbar />}
-          <Routes>
-          <Route path="/" element={<Navigate to={localStorage.getItem('userId') ? "/dashboard" : "/login"} replace />} />
-          {/* Rutas públicas (accesibles sin login) */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<SignUp />} />
-          {/* Rutas protegidas (requieren login) */}
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/perfil" element={
-            <ProtectedRoute>
-              <Perfil />
-            </ProtectedRoute>
-          } />
-          <Route path="/insignias" element={
-            <ProtectedRoute>
-              <Insignias />
-            </ProtectedRoute>
-          } />
-          <Route path="/jobs" element={
-            <ProtectedRoute>
-              <Jobs />
-            </ProtectedRoute>
-          } />
-          {/* Ruta por defecto para URLs no encontradas */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
-      </Router>
-    </div>
+      <TutorialProvider>
+        <div className="min-h-screen bg-gray-100">
+          {/* Modal del Tutorial - Se mostrará automáticamente para nuevos usuarios */}
+          <TutorialModal />
+          
+          <Router>
+            {localStorage.getItem('userId') && <Navbar />}
+            <Routes>
+              <Route path="/" element={<Navigate to={localStorage.getItem('userId') ? "/dashboard" : "/login"} replace />} />
+              {/* Rutas públicas (accesibles sin login) */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<SignUp />} />
+              {/* Rutas protegidas (requieren login) */}
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/perfil" element={
+                <ProtectedRoute>
+                  <Perfil />
+                </ProtectedRoute>
+              } />
+              <Route path="/insignias" element={
+                <ProtectedRoute>
+                  <Insignias />
+                </ProtectedRoute>
+              } />
+              <Route path="/jobs" element={
+                <ProtectedRoute>
+                  <Jobs />
+                </ProtectedRoute>
+              } />
+              <Route path="/ranking" element={
+                <ProtectedRoute>
+                  <Ranking />
+                </ProtectedRoute>
+              } />
+              {/* Ruta por defecto para URLs no encontradas */}
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+          </Router>
+        </div>
+      </TutorialProvider>
     </FeedbackProvider>
   );
 }

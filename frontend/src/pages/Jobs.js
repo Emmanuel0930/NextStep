@@ -1,11 +1,17 @@
 import { useState, useEffect } from "react";
 import { X, MapPin, DollarSign, Clock, User, CheckCircle, FileText, WifiOff, Wifi, Heart, Award } from "lucide-react";
-import { getJobs, toggleFavorite, reviewJob } from "../services/api";
+import { getJobs, toggleFavorite, getFavorites, reviewJob } from "../services/api";
 import SearchComponent from "../components/Search";
 import { useNotification } from "../components/NotificationProvider";
-import { offlineCache } from "../utils/offlineCache";
 import { useFeedback } from "../components/FeedbackProvider";
-import config from '../config';
+import StarRating from "../components/StarRating";
+import { 
+  calificarEmpleo, 
+  getPromedioCalificaciones, 
+  getCalificacionUsuario 
+} from "../services/api";
+import { offlineCache } from "../utils/offlineCache";
+import config from "../config";
 
 const API_BASE_URL = config.API_URL;
 
@@ -20,12 +26,25 @@ export default function Jobs() {
   const [showModal, setShowModal] = useState(false);
   const [favorites, setFavorites] = useState(new Set());
   const [activeFilters, setActiveFilters] = useState({});
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [usingCache, setUsingCache] = useState(false);
-  const [reviewStats, setReviewStats] = useState({ puntos: 0, revisadas: 0, limite: false });
   const { showNotification } = useNotification();
   const { celebrateAchievement, showJobActionFeedback } = useFeedback();
 
+  const [calificacionesUsuario, setCalificacionesUsuario] = useState({});
+  const [promedios, setPromedios] = useState({});
+  const [cargandoCalificaciones, setCargandoCalificaciones] = useState({});
+  
+  // Estados para funcionalidad offline
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [usingCache, setUsingCache] = useState(false);
+  
+  // Estados para sistema de revisión de empleos
+  const [reviewStats, setReviewStats] = useState({
+    puntos: 0,
+    revisadas: 0,
+    limite: false
+  });
+
+  // Detectar conexión/desconexión
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
@@ -62,6 +81,19 @@ export default function Jobs() {
       setJobs(jobsData);
       setFilteredJobs(jobsData);
       offlineCache.saveJobs(jobsData);
+      
+      // Si hay usuario logueado, obtener favoritos
+      try {
+        const userId = localStorage.getItem('userId');
+        if (userId) {
+          const favResp = await getFavorites(userId);
+          if (favResp && favResp.favoritos) {
+            setFavorites(new Set(favResp.favoritos.map(j => String(j.id))));
+          }
+        }
+      } catch (err) {
+        console.error('No se pudieron cargar los favoritos:', err);
+      }
       
     } catch (error) {
       console.error('Error al cargar empleos:', error);
@@ -187,22 +219,32 @@ export default function Jobs() {
     setShowModal(true);
     
     const userId = localStorage.getItem('userId');
+    console.log('🔑 UserId:', userId, '| Límite:', reviewStats.limite);
+    
     if (userId && !reviewStats.limite) {
       try {
+        console.log('📞 Llamando a reviewJob...');
         const result = await reviewJob(job.id, userId);
+        console.log('📊 Resultado:', result);
+        
         if (result.success) {
           setReviewStats({
             puntos: result.puntosHoy,
             revisadas: result.vacantesRevisiadas,
             limite: result.limiteAlcanzado
           });
-          showNotification(`+${result.puntosGanados} puntos por revisar vacante`);
+          showNotification(`+${result.puntosGanados} puntos por revisar vacante 🎉`);
         } else if (result.limiteAlcanzado) {
           setReviewStats(prev => ({ ...prev, limite: true }));
+          showNotification('Límite diario de 10 vacantes alcanzado');
         }
       } catch (error) {
-        console.error('Error al registrar revisión:', error);
+        console.error('❌ Error al registrar revisión:', error);
       }
+    } else if (!userId) {
+      console.log('⚠️ No hay usuario logueado');
+    } else if (reviewStats.limite) {
+      console.log('⚠️ Límite diario alcanzado');
     }
   };
 
@@ -278,8 +320,97 @@ export default function Jobs() {
     }
   };
 
+  // Función para calificar empleo
+  const handleCalificar = async (empleoId, calificacion, comentario) => {
+    try {
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        showNotification('Debes iniciar sesión para calificar oportunidades');
+        return;
+      }
+
+      const response = await calificarEmpleo(userId, empleoId, calificacion, comentario);
+      
+      if (response.success) {
+        showNotification('¡Calificación guardada correctamente! ⭐');
+        
+        // Actualizar estado local
+        setCalificacionesUsuario(prev => ({
+          ...prev,
+          [empleoId]: {
+            calificacion,
+            comentario,
+            fechaCalificacion: new Date()
+          }
+        }));
+        
+        // Recargar promedio
+        cargarPromedio(empleoId);
+      }
+    } catch (error) {
+      console.error('Error calificando:', error);
+      showNotification('Error al guardar calificación');
+    }
+  };
+
+  // Función para cargar promedio
+  const cargarPromedio = async (empleoId) => {
+    try {
+      const data = await getPromedioCalificaciones(empleoId);
+      if (data.success) {
+        setPromedios(prev => ({
+          ...prev,
+          [empleoId]: data
+        }));
+      }
+    } catch (error) {
+      console.error('Error cargando promedio:', error);
+    }
+  };
+
+  // Función para cargar calificación del usuario
+  const cargarCalificacionUsuario = async (empleoId) => {
+    try {
+      const userId = localStorage.getItem('userId');
+      if (!userId) return;
+
+      setCargandoCalificaciones(prev => ({ ...prev, [empleoId]: true }));
+      
+      const data = await getCalificacionUsuario(empleoId, userId);
+      if (data.success && data.calificacion) {
+        setCalificacionesUsuario(prev => ({
+          ...prev,
+          [empleoId]: data.calificacion
+        }));
+      }
+    } catch (error) {
+      console.error('Error cargando calificación usuario:', error);
+    } finally {
+      setCargandoCalificaciones(prev => ({ ...prev, [empleoId]: false }));
+    }
+  };
+
+  // Cargar calificación cuando se selecciona un empleo
+  useEffect(() => {
+    if (selectedJob && localStorage.getItem('userId')) {
+      cargarCalificacionUsuario(selectedJob.id);
+      cargarPromedio(selectedJob.id);
+    }
+  }, [selectedJob]);
+
   const handleRetry = async () => {
-    await fetchJobs();
+    try {
+      setLoading(true);
+      setError("");
+      const jobsData = await getJobs();
+      setJobs(jobsData);
+      setFilteredJobs(jobsData);
+    } catch (error) {
+      console.error('Error al reintentar:', error);
+      setError("Error al cargar los empleos. Verifica tu conexión e intenta nuevamente.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const formatSalary = (salary) => {
@@ -494,6 +625,50 @@ export default function Jobs() {
                 </div>
               )}
 
+              {/* ============ NUEVA SECCIÓN DE CALIFICACIÓN ============ */}
+              <div className="mb-6 pt-6 border-t border-gray-200">
+                <StarRating
+                  empleoId={selectedJob.id}
+                  calificacionUsuario={calificacionesUsuario[selectedJob.id]}
+                  onCalificar={handleCalificar}
+                  readonly={cargandoCalificaciones[selectedJob.id]}
+                />
+
+                {/* Promedio de calificaciones */}
+                {promedios[selectedJob.id] && promedios[selectedJob.id].totalCalificaciones > 0 && (
+                  <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-yellow-800">
+                        Calificación general:
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <span
+                              key={star}
+                              className={`text-lg ${
+                                star <= Math.round(promedios[selectedJob.id].promedio)
+                                  ? 'text-yellow-400'
+                                  : 'text-gray-300'
+                              }`}
+                            >
+                              ★
+                            </span>
+                          ))}
+                        </div>
+                        <span className="text-lg font-bold text-yellow-600">
+                          {promedios[selectedJob.id].promedio}/5
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-yellow-700">
+                      Basado en {promedios[selectedJob.id].totalCalificaciones} 
+                      {promedios[selectedJob.id].totalCalificaciones === 1 ? ' calificación' : ' calificaciones'}
+                    </p>
+                  </div>
+                )}
+              </div>
+
               {/* Botones de acción */}
               <div className="flex gap-3 pt-4 border-t border-gray-200">
                 <button
@@ -525,7 +700,10 @@ export default function Jobs() {
         onFiltersChange={handleFiltersChange} 
       />
 
-      <div className="px-4 py-6 max-w-6xl mx-auto">
+      <div 
+        className="px-4 py-6 max-w-6xl mx-auto"
+        data-tutorial="jobs-section"
+      >
         {!loading && !searchLoading && filteredJobs.length > 0 && (
           <div className="mb-6 text-center">
             <p className="text-gray-600">
@@ -538,17 +716,22 @@ export default function Jobs() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div 
+          className="grid grid-cols-1 md:grid-cols-3 gap-6"
+          data-tutorial="jobs-grid"
+        >
           {filteredJobs.map((job) => (
             <div
               key={job.id}
               onClick={() => handleJobClick(job)}
-              className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 cursor-pointer hover:shadow-lg hover:border-tertiaryBrand-purple200 transition-all flex flex-col justify-between"
+              className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 cursor-pointer hover:shadow-lg hover:border-purple-200 transition-all flex flex-col justify-between relative"
+              data-tutorial="job-card"
             >
               <button
                 onClick={(e) => handleToggleFavorite(job.id, e)}
                 className="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-100"
                 aria-label="Favorito"
+                data-tutorial="favorite-button"
               >
                 <Heart className={`w-5 h-5 ${favorites.has(String(job.id)) ? 'text-red-500' : 'text-gray-300'}`} />
               </button>
@@ -644,5 +827,4 @@ export default function Jobs() {
         )}
       </div>
     </div>
-  );
-}
+  )}; 

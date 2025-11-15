@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Este proyecto es un prototipo de aplicación web para incentivar la búsqueda de empleo en la plataforma **Magneto**.  \r El sistema está dividido en **Frontend (React)** y **Backend (Node.js + Express)**.",
   "main": "index.js",
-  "scripts": {
+   "scripts": {
     "install-all": "npm install && npm run install-backend && npm run install-frontend",
     "install-frontend": "cd frontend && npm install",
     "install-backend": "cd backend && npm install",
@@ -15,8 +15,8 @@
     "tunnel-front": "npx localtunnel --port 3000 --subdomain nextstep-front",
     "tunnel-back": "npx localtunnel --port 5000 --subdomain nextstep-back",
     "tunnel": "concurrently -n tunnel-back,tunnel-front -c magenta,cyan \"npm run tunnel-back\" \"npm run tunnel-front\""
-  },
-  "repository": {
+   },
+    "repository": {
     "type": "git",
     "url": "git+https://github.com/Emmanuel0930/Magneto-engage.git"
   },

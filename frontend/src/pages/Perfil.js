@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   User, Briefcase, FileText, Languages, Save, CheckCircle, 
-  Award, Edit, MapPin, DollarSign, GraduationCap, 
+  Award, Edit, X, MapPin, DollarSign, GraduationCap, 
   Clock, Plus, Trash2, Heart 
 } from 'lucide-react';
 
@@ -355,14 +355,33 @@ const verificarInsigniaPerfilCompleto = async () => {
   const nivelesCompletados = userProfile?.progresoTotal?.nivelesCompletados || 0;
   const porcentajePerfil = userProfile?.progresoTotal?.porcentajePerfil || 0;
 
-  return (
+  // Componente para mostrar información en modo lectura
+  const InfoCard = ({ icon: Icon, title, value }) => (
+    <div className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors bg-gray-50">
+      <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+        <Icon className="w-6 h-6 text-purple-600" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <h4 className="text-sm font-medium text-gray-500">{title}</h4>
+        <p className="text-gray-900 font-medium truncate">{value || 'No especificado'}</p>
+      </div>
+    </div>
+  );
+
+return (
     <div className="min-h-screen bg-gray-50 px-4 py-6">
-      <div className="max-w-6xl mx-auto">
+      <div 
+        className="max-w-6xl mx-auto"
+        data-tutorial="profile-section"
+      >
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Columna Izquierda - Información del Perfil */}
           <div className="lg:col-span-1 space-y-6">
             {/* Card de Usuario */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <div 
+              className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
+              data-tutorial="profile-user-card"
+            >
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-purple-700 rounded-full flex items-center justify-center">
                   <User className="w-8 h-8 text-white" />
@@ -389,8 +408,11 @@ const verificarInsigniaPerfilCompleto = async () => {
             <PushNotifications cuentaId={userId} />
 
             {/* Progreso del Perfil */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-              <h3 className="text-lg font-semibold text-primaryBrand-300 mb-4">
+            <div 
+              className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
+              data-tutorial="profile-progress"
+            >
+              <h3 className="text-lg font-semibold text-purple-600 mb-4">
                 Progreso del Perfil
               </h3>
               
@@ -426,7 +448,7 @@ const verificarInsigniaPerfilCompleto = async () => {
             </div>
 
             {/* Navegación de niveles */}
-            <div className="space-y-3">
+            <div className="space-y-3" data-tutorial="profile-levels-nav">
               {[1, 2, 3, 4].map(level => (
                 <button
                   key={level}
@@ -475,7 +497,11 @@ const verificarInsigniaPerfilCompleto = async () => {
 
           {/* Columna Derecha - Contenido del Nivel */}
           <div className="lg:col-span-2">
-            <div id={`nivel-${activeLevel}`} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover-lift">
+            <div 
+              id={`nivel-${activeLevel}`} 
+              className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover-lift"
+              data-tutorial={`profile-level${activeLevel}`}
+            >
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -1039,7 +1065,10 @@ const verificarInsigniaPerfilCompleto = async () => {
             </div>
 
             {/* Favoritos */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mt-6">
+            <div 
+              className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mt-6"
+              data-tutorial="profile-favorites"
+            >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -1086,16 +1115,3 @@ const verificarInsigniaPerfilCompleto = async () => {
     </div>
   );
 }
-
-// Componente para mostrar información en modo lectura
-const InfoCard = ({ icon: Icon, title, value }) => (
-  <div className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-purple-300 transition-colors bg-gray-50">
-    <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-      <Icon className="w-6 h-6 text-purple-600" />
-    </div>
-    <div className="flex-1 min-w-0">
-      <h4 className="text-sm font-medium text-gray-500">{title}</h4>
-      <p className="text-gray-900 font-medium truncate">{value || 'No especificado'}</p>
-    </div>
-  </div>
-)

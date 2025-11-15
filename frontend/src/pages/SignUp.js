@@ -88,6 +88,7 @@ export default function SignUp() {
     
     try {
       const response = await register({
+        nombreUsuario: `${firstName} ${lastName}`.trim() || email.split('@')[0],
         correo: email,
         contraseña: password
       });

@@ -164,6 +164,53 @@ router.get('/insignia/:cuentaId', async (req, res) => {
 
 module.exports = router;
 
+// Ruta para insignia de bienvenida del tutorial
+router.post('/welcome-badge', async (req, res) => {
+  try {
+    const { cuentaId } = req.body;
+
+    // Crear insignia de bienvenida
+    const insigniaBienvenida = await Insignias.findOneAndUpdate(
+      { cuentaId, nombre: 'Bienvenido a NextStep' },
+      {
+        $setOnInsert: {
+          descripcion: 'Has completado el tutorial inicial de NextStep',
+          icono: '🎉',
+          obtenida: true,
+          fechaObtenida: new Date(),
+          notificacionEnviada: false
+        }
+      },
+      { upsert: true, new: true }
+    );
+
+    // Dar puntos de bienvenida
+    const PUNTOS_BIENVENIDA = 50;
+    await Ingresos.create({
+      cuentaId,
+      puntosGanados: PUNTOS_BIENVENIDA
+    });
+
+    await Cuenta.findByIdAndUpdate(cuentaId, {
+      $inc: { puntos: PUNTOS_BIENVENIDA }
+    });
+
+    res.json({
+      success: true,
+      insignia: insigniaBienvenida,
+      puntosOtorgados: PUNTOS_BIENVENIDA,
+      message: '¡Insignia de bienvenida otorgada!'
+    });
+
+  } catch (error) {
+    console.error('Error otorgando insignia de bienvenida:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al otorgar insignia de bienvenida'
+    });
+  }
+});
+
 // -------------------------------------------------------------
 // Ruta de reparación: otorgar retroactivamente 'Primera Postulación'
 // Recorre todas las cuentas que tienen al menos una postulación y
